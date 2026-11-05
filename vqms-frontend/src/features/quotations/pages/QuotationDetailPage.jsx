@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, ArrowRight, Ban, BadgeCheck, Copy, Pencil, Play, Plus, RefreshCw, Send, ShieldCheck, Trash, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Copy, Pencil, Plus, ShieldCheck, Trash, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import SummaryPanel from '@/components/common/SummaryPanel';
 import StepTimeline from '@/components/common/StepTimeline';
@@ -19,19 +19,7 @@ import { normalizePage } from '@/utils/pagination';
 import { validationKeys, validationService } from '@/features/validation/validationService';
 import { quotationKeys, quotationService, QUOTATION_RULES } from '../quotationService';
 import QuotationItemDialog from '../components/QuotationItemDialog';
-
-const ACTIONS = {
-  process: { label: 'Process', icon: Play, message: 'Queue this quotation for processing?' },
-  retry: { label: 'Retry processing', icon: RefreshCw, message: 'Retry processing of this quotation?' },
-  review: { label: 'Mark reviewed', icon: BadgeCheck, message: 'Confirm that the extracted data was reviewed? The quotation becomes validated.' },
-  submit: { label: 'Submit', icon: Send, message: 'Submit this quotation? Items can no longer be changed afterwards.' },
-  cancel: { label: 'Cancel quotation', icon: Ban, tone: 'danger', message: 'Cancel this quotation?' },
-};
-
-const ACTION_VARIANT = { review: 'success', submit: 'primary', process: 'primary', retry: 'secondary', cancel: 'danger-outline' };
-
-
-const isManual = (data) => !data.fileName || data.fileName === 'manual_entry';
+import { ACTIONS, ACTION_VARIANT, isManual, quotationPermissions } from '../quotationActions';
 
 /** Lifecycle steps from the status and timestamps the backend returns (manual entries skip processing). */
 function quotationSteps(data) {
@@ -135,16 +123,8 @@ export default function QuotationDetailPage() {
 
   const data = quotation.data;
   const { status } = data;
-  const canManage = can('quotation.manage');
-  const canReview = can('quotation.review');
+  const { canManage, canReview, actions: available } = quotationPermissions(data, can);
   const itemsEditable = canManage && !QUOTATION_RULES.itemsLocked.includes(status);
-  const available = [
-    canManage && QUOTATION_RULES.process.includes(status) && 'process',
-    canManage && QUOTATION_RULES.retry.includes(status) && 'retry',
-    canReview && QUOTATION_RULES.review.includes(status) && 'review',
-    canManage && QUOTATION_RULES.submit.includes(status) && 'submit',
-    canManage && !QUOTATION_RULES.notCancellable.includes(status) && 'cancel',
-  ].filter(Boolean);
   const active = pending && ACTIONS[pending];
   const validationPage = normalizePage(validations.data);
 

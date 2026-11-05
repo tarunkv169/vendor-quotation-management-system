@@ -7,7 +7,7 @@ import Skeleton from '@/components/common/Skeleton';
 import { cn } from '@/utils/cn';
 import { formatRelative } from '@/utils/formatDate';
 import { notificationKeys, notificationService } from './notificationService';
-import { iconFor, notificationLink } from './notificationLinks';
+import { groupOf, iconFor, notificationLink, popupGroupEnabled, popupsEnabled } from './notificationLinks';
 
 const POLL_MS = 30_000;
 const PREVIEW = { unreadOnly: false, page: 0, size: 8 };
@@ -58,11 +58,12 @@ export default function NotificationBell({ className }) {
     lastUnread.current = unread;
     if (previous == null || unread <= previous) return;
     refresh();
+    if (!popupsEnabled()) return; // turned off in Notifications → Preferences
     notificationService
       .my({ unreadOnly: true, page: 0, size: 1 })
       .then((page) => {
         const latest = page?.content?.[0];
-        if (!latest) return;
+        if (!latest || !popupGroupEnabled(groupOf(latest))) return;
         const more = unread - previous - 1;
         toast(latest.title, {
           description: more > 0 ? `${latest.message} (+${more} more)` : latest.message,

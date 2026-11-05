@@ -1,25 +1,25 @@
-import { useEffect, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { keepPreviousData, useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
+  ArrowUpDown,
   CalendarDays,
-  Check,
+  Clock,
+  CircleCheck,
+  ClipboardList,
   Copy,
   Download,
   Eye,
-  FileText,
-  Hourglass,
-  ListFilter,
+  Layers,
   Package,
   Pencil,
   Plus,
-  RefreshCw,
-  ShoppingCart,
+  Send,
+  Tag,
   Trash,
-  X,
 } from 'lucide-react';
-import { differenceInCalendarDays, isValid, parseISO } from 'date-fns';
+import { differenceInCalendarDays, endOfDay, isValid, parseISO, startOfDay, startOfYear } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { useDebounce } from '@/hooks/useDebounce';
 import { usePagination } from '@/hooks/usePagination';
@@ -28,6 +28,8 @@ import DataTable from '@/components/common/DataTable';
 import Pagination from '@/components/common/Pagination';
 import SearchInput from '@/components/common/SearchInput';
 import Select from '@/components/common/Select';
+import Tabs from '@/components/common/Tabs';
+import Input from '@/components/common/Input';
 import StatusBadge from '@/components/common/StatusBadge';
 import KpiCard from '@/components/common/KpiCard';
 import ActionMenu from '@/components/common/ActionMenu';
@@ -36,7 +38,7 @@ import Skeleton from '@/components/common/Skeleton';
 import EmptyState, { ErrorState } from '@/components/common/EmptyState';
 import { cn } from '@/utils/cn';
 import { normalizePage } from '@/utils/pagination';
-import { formatDate } from '@/utils/formatDate';
+import { formatDate, formatRelative } from '@/utils/formatDate';
 import { formatCurrency, formatNumber } from '@/utils/formatCurrency';
 import { humanize } from '@/utils/constants';
 import { downloadCsv } from '@/utils/exportCsv';
@@ -49,6 +51,18 @@ const OPEN_STATUSES = ['DRAFT', 'SUBMITTED', 'APPROVED', 'QUOTATION_REQUESTED', 
 // Count queries: '' (all) followed by every status. Same keys as the dashboard, so they are shared.
 const COUNT_STATUSES = ['', ...STATUSES];
 
+// Created-date filter. The backend has no date filter, so while a range is active the page loads every
+// request matching the other filters (100 per call) and filters and pages them in the browser.
+const DATE_RANGES = [
+  { value: '', label: 'Date range' },
+  { value: '7', label: 'Created in the last 7 days' },
+  { value: '30', label: 'Created in the last 30 days' },
+  { value: '90', label: 'Created in the last 90 days' },
+  { value: 'year', label: 'Created this year' },
+  { value: 'custom', label: 'Custom date range…' },
+];
+const MAX_PAGES = 50;
+
 const SORTS = [
   { value: 'createdAt:desc', label: 'Newest first' },
   { value: 'createdAt:asc', label: 'Oldest first' },
@@ -56,6 +70,27 @@ const SORTS = [
   { value: 'updatedAt:desc', label: 'Recently updated' },
   { value: 'title:asc', label: 'Title (A–Z)' },
 ];
+// The tabs of the design; any other status chosen in the status filter gets a tab while selected.
+const MAIN_TABS = ['SUBMITTED', 'UNDER_EVALUATION', 'COMPLETED'];
+
+function rangeBounds(range, from, to) {
+  const now = new Date();
+  if (!range) return null;
+  if (range === 'year') return [startOfYear(now), endOfDay(now)];
+  if (range === 'custom') {
+    const start = from ? startOfDay(parseISO(from)) : null;
+    const end = to ? endOfDay(parseISO(to)) : null;
+    return start || end ? [start, end] : null;
+  }
+  return [startOfDay(new Date(now.getTime() - Number(range) * 86400000)), endOfDay(now)];
+}
+
+function inBounds(value, bounds) {
+  const date = value ? parseISO(value) : null;
+  if (!date || !isValid(date)) return false;
+  const [start, end] = bounds;
+  return (!start || date >= start) && (!end || date <= end);
+}
 
 const EXPORT_COLUMNS = [
   { header: 'Reference', value: (row) => requestReference(row.id) },
@@ -78,8 +113,7 @@ function DateCell({ value, hint }) {
   if (!date || !isValid(date)) return <span className="text-slate-400">—</span>;
   const days = differenceInCalendarDays(date, new Date());
   return (
-    <span className="flex items-start gap-2 whitespace-nowrap">
-      <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+    <span className="block whitespace-nowrap">
       <span>
         <span className="block text-slate-800">{formatDate(value)}</span>
         {hint && (
@@ -102,33 +136,14 @@ function RequestCell({ row }) {
         <Link to={`/procurement/${row.id}`} onClick={(event) => event.stopPropagation()} className="block max-w-72 truncate font-semibold text-slate-900 hover:text-brand-700" title={row.title}>
           {row.title}
         </Link>
-        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
-          <span className="h-1 w-1 rounded-full bg-slate-400" aria-hidden="true" />
-          <span className="font-mono">{requestReference(row.id)}</span>
-        </p>
+        {row.description ? (
+          <p className="mt-0.5 max-w-72 truncate text-xs text-slate-500" title={`${row.description} · ${requestReference(row.id)}`}>
+            {row.description}
+          </p>
+        ) : (
+          <p className="mt-0.5 font-mono text-xs text-slate-500">{requestReference(row.id)}</p>
+        )}
       </div>
-    </div>
-  );
-}
-
-/** Small popover anchored to the "Filters" button. */
-function FilterPopover({ open, onClose, children }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    if (!open) return undefined;
-    const onPointer = (event) => !ref.current?.parentElement?.contains(event.target) && onClose();
-    const onKey = (event) => event.key === 'Escape' && onClose();
-    document.addEventListener('mousedown', onPointer);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onPointer);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open, onClose]);
-  if (!open) return null;
-  return (
-    <div ref={ref} role="dialog" aria-label="Filters" className="absolute right-0 top-11 z-30 w-72 rounded-md border border-line bg-surface p-4 shadow-lg">
-      {children}
     </div>
   );
 }
@@ -144,13 +159,14 @@ export default function ProcurementListPage() {
   const [keyword, setKeyword] = useState('');
   const debouncedKeyword = useDebounce(keyword.trim());
   const pager = usePagination({ size: 10, sortBy: 'createdAt', direction: 'desc' });
-  const [selected, setSelected] = useState(() => new Map());
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const range = searchParams.get('created') || '';
+  const from = searchParams.get('from') || '';
+  const to = searchParams.get('to') || '';
   const [pending, setPending] = useState(null); // { row, key } – key is an action key or 'delete'
   const [exporting, setExporting] = useState(false);
 
   const updateParam = (key, value) => {
-    const next = new URLSearchParams(searchParams);
+    const next = new URLSearchParams(window.location.search);
     if (value) next.set(key, value);
     else next.delete(key);
     setSearchParams(next, { replace: true });
@@ -164,8 +180,35 @@ export default function ProcurementListPage() {
     queryKey: procurementKeys.list(params),
     queryFn: ({ signal }) => procurementService.list(params, signal),
     placeholderData: keepPreviousData,
+    enabled: !rangeBounds(range, from, to),
   });
-  const page = normalizePage(query.data);
+  const bounds = rangeBounds(range, from, to);
+  const ranged = useQuery({
+    queryKey: procurementKeys.list({ ...params, page: 'all', size: 100, created: range, from, to }),
+    queryFn: async ({ signal }) => {
+      let rows = [];
+      for (let index = 0; index < MAX_PAGES; index += 1) {
+        const result = normalizePage(await procurementService.list({ ...params, page: index, size: 100 }, signal));
+        rows = rows.concat(result.items);
+        if (index + 1 >= result.totalPages) break;
+      }
+      return rows;
+    },
+    enabled: Boolean(bounds),
+    placeholderData: keepPreviousData,
+  });
+  const rangedRows = useMemo(() => (bounds ? (ranged.data || []).filter((row) => inBounds(row.createdAt, bounds)) : []), [ranged.data, bounds]);
+  const serverPage = normalizePage(query.data);
+  const page = bounds
+    ? {
+        items: rangedRows.slice(pager.page * pager.size, (pager.page + 1) * pager.size),
+        page: pager.page,
+        size: pager.size,
+        totalElements: rangedRows.length,
+        totalPages: Math.ceil(rangedRows.length / pager.size),
+      }
+    : serverPage;
+  const listQuery = bounds ? ranged : query;
 
   const counts = useQueries({
     queries: COUNT_STATUSES.map((value) => ({
@@ -191,45 +234,19 @@ export default function ProcurementListPage() {
   const action = useMutation({
     mutationFn: ({ row, key, reason }) => (key === 'delete' ? procurementService.remove(row.id) : runProcurementAction(row.id, key, reason)),
     meta: { successMessage: 'Request updated' },
-    onSuccess: (_, { row, key }) => {
-      if (key === 'delete') {
-        setSelected((current) => {
-          const next = new Map(current);
-          next.delete(row.id);
-          return next;
-        });
-      }
+    onSuccess: () => {
       setPending(null);
       refreshAll();
     },
   });
 
-  // ---- Selection (kept across pages) ----
-  const pageIds = page.items.map((row) => row.id);
-  const allOnPage = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
-  const someOnPage = pageIds.some((id) => selected.has(id));
-  const toggleRow = (row) =>
-    setSelected((current) => {
-      const next = new Map(current);
-      if (next.has(row.id)) next.delete(row.id);
-      else next.set(row.id, row);
-      return next;
-    });
-  const toggleAll = () =>
-    setSelected((current) => {
-      const next = new Map(current);
-      if (allOnPage) pageIds.forEach((id) => next.delete(id));
-      else page.items.forEach((row) => next.set(row.id, row));
-      return next;
-    });
-
-  // ---- Export: the selection, or every request matching the current filters ----
+  // ---- Export: every request matching the current filters (all pages) ----
   const exportCsv = async () => {
     setExporting(true);
     try {
-      let rows = [...selected.values()];
-      if (!rows.length) {
-        for (let index = 0; index < 50; index += 1) {
+      let rows = bounds ? rangedRows : [];
+      if (!bounds) {
+        for (let index = 0; index < MAX_PAGES; index += 1) {
           const result = normalizePage(await procurementService.list({ ...params, page: index, size: 100 }));
           rows = rows.concat(result.items);
           if (index + 1 >= result.totalPages) break;
@@ -298,27 +315,57 @@ export default function ProcurementListPage() {
       className: 'whitespace-nowrap',
       render: (row) => (row.budget != null ? <span className="num font-medium text-slate-900">{formatCurrency(row.budget)}</span> : <span className="text-slate-400">Not set</span>),
     },
-    { key: 'requiredBy', header: 'Required By', sortKey: 'requiredBy', render: (row) => <DateCell value={row.requiredBy} hint={OPEN_STATUSES.includes(row.status)} /> },
+    { key: 'requiredBy', header: 'Needed by', sortKey: 'requiredBy', render: (row) => <DateCell value={row.requiredBy} hint={OPEN_STATUSES.includes(row.status)} /> },
     { key: 'status', header: 'Status', sortKey: 'status', render: (row) => <StatusBadge status={row.status} /> },
-    { key: 'createdAt', header: 'Created', sortKey: 'createdAt', render: (row) => <DateCell value={row.createdAt} /> },
+    {
+      key: 'createdAt',
+      header: 'Created',
+      sortKey: 'createdAt',
+      className: 'whitespace-nowrap',
+      render: (row) => (
+        <span className="text-slate-600" title={formatDate(row.createdAt)}>
+          {formatRelative(row.createdAt)}
+        </span>
+      ),
+    },
     { key: 'actions', header: 'Actions', headerClassName: 'text-right', render: (row) => renderActions(row) },
   ];
 
   const sortValue = `${pager.sortBy}:${pager.direction}`;
   const knownSort = SORTS.some((option) => option.value === sortValue);
-  const activeFilters = (status && !searching ? 1 : 0) + (canViewAll && scope === 'mine' ? 1 : 0);
+  const tabs = [
+    { value: '', label: 'All', count: countOf('').data },
+    ...STATUSES.filter((value) => MAIN_TABS.includes(value) || value === status).map((value) => ({
+      value,
+      label: humanize(value).replace(/\b\w/g, (letter) => letter.toUpperCase()),
+      count: countOf(value).data,
+    })),
+  ];
+
+  const setRange = (value) => {
+    const next = new URLSearchParams(window.location.search);
+    if (value) next.set('created', value);
+    else next.delete('created');
+    if (value !== 'custom') {
+      next.delete('from');
+      next.delete('to');
+    }
+    setSearchParams(next, { replace: true });
+    pager.reset();
+  };
+  const filteredView = Boolean(keyword || status || range);
+  const clearFilters = () => {
+    setKeyword('');
+    const next = new URLSearchParams();
+    if (searchParams.get('scope')) next.set('scope', searchParams.get('scope'));
+    setSearchParams(next, { replace: true });
+    pager.reset();
+  };
   const empty = {
-    title: keyword || status ? 'No matching requests' : 'No procurement requests yet',
+    title: filteredView ? 'No matching requests' : 'No procurement requests yet',
     action:
-      keyword || status ? (
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => {
-            setKeyword('');
-            updateParam('status', '');
-          }}
-        >
+      filteredView ? (
+        <Button variant="secondary" size="sm" onClick={clearFilters}>
           Clear filters
         </Button>
       ) : (
@@ -335,12 +382,12 @@ export default function ProcurementListPage() {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
           <span className="hidden h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 sm:flex">
-            <ShoppingCart className="h-7 w-7" strokeWidth={1.8} aria-hidden="true" />
+            <ClipboardList className="h-7 w-7" strokeWidth={1.8} aria-hidden="true" />
           </span>
           <div className="min-w-0">
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Procurement Requests</h1>
             <p className="mt-1 text-sm text-slate-500">
-              {canViewAll ? 'Create, track and manage procurement requests across your organization.' : 'Create, track and manage the procurement requests you have raised.'}
+              {canViewAll ? 'Manage and track all procurement requests, from submission to completion.' : 'Manage and track your procurement requests, from submission to completion.'}
             </p>
           </div>
         </div>
@@ -352,7 +399,7 @@ export default function ProcurementListPage() {
       {/* KPIs */}
       <section aria-label="Request figures" className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <KpiCard
-          icon={FileText}
+          icon={ClipboardList}
           tone="brand"
           label={scope === 'mine' ? 'My Requests' : 'Total Requests'}
           query={countOf('')}
@@ -360,125 +407,97 @@ export default function ProcurementListPage() {
           onClick={() => updateParam('status', '')}
           active={!status && !searching}
         />
-        <KpiCard icon={Hourglass} tone="warning" label="Pending" query={countOf('SUBMITTED')} caption={share('SUBMITTED')} onClick={() => updateParam('status', status === 'SUBMITTED' ? '' : 'SUBMITTED')} active={status === 'SUBMITTED' && !searching} />
-        <KpiCard icon={Check} tone="success" label="Approved" query={countOf('APPROVED')} caption={share('APPROVED')} onClick={() => updateParam('status', status === 'APPROVED' ? '' : 'APPROVED')} active={status === 'APPROVED' && !searching} />
-        <KpiCard icon={X} tone="danger" label="Rejected" query={countOf('REJECTED')} caption={share('REJECTED')} onClick={() => updateParam('status', status === 'REJECTED' ? '' : 'REJECTED')} active={status === 'REJECTED' && !searching} />
+        <KpiCard icon={Send} tone="info" label="Submitted" query={countOf('SUBMITTED')} caption={share('SUBMITTED')} onClick={() => updateParam('status', status === 'SUBMITTED' ? '' : 'SUBMITTED')} active={status === 'SUBMITTED' && !searching} />
+        <KpiCard icon={Clock} tone="warning" label="Under Evaluation" query={countOf('UNDER_EVALUATION')} caption={share('UNDER_EVALUATION')} onClick={() => updateParam('status', status === 'UNDER_EVALUATION' ? '' : 'UNDER_EVALUATION')} active={status === 'UNDER_EVALUATION' && !searching} />
+        <KpiCard icon={CircleCheck} tone="success" label="Completed" query={countOf('COMPLETED')} caption={share('COMPLETED')} onClick={() => updateParam('status', status === 'COMPLETED' ? '' : 'COMPLETED')} active={status === 'COMPLETED' && !searching} />
       </section>
 
-      {/* Toolbar */}
-      <section aria-label="Search and filters" className="card mt-5 p-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <SearchInput
-            value={keyword}
-            onChange={(value) => {
-              setKeyword(value);
-              pager.reset();
-            }}
-            placeholder="Search by request title or description…"
-            className="lg:w-96"
-          />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex">
-            <Select
-              aria-label="Status"
-              value={searching ? '' : status}
-              onChange={(event) => updateParam('status', event.target.value)}
-              disabled={searching}
-              title={searching ? 'A search covers all statuses' : undefined}
-              options={[
-                { value: '', label: 'All Statuses' },
-                ...STATUSES.map((value) => ({ value, label: countOf(value).data != null ? `${humanize(value)} (${countOf(value).data})` : humanize(value) })),
-              ]}
-              className="lg:w-56"
+      {/* Tabs, toolbar and table in one card */}
+      <section aria-label="Procurement requests" className="card mt-5 overflow-hidden">
+        <div className={cn('overflow-x-auto px-4 pt-2 transition-opacity sm:px-5', searching && 'pointer-events-none opacity-50')} aria-disabled={searching || undefined}>
+          <Tabs variant="pill" label="Filter by status" value={searching ? '' : status} onChange={(value) => updateParam('status', value)} tabs={tabs} />
+        </div>
+        <div className="border-b border-line p-4 sm:px-5">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+            <SearchInput
+              value={keyword}
+              onChange={(value) => {
+                setKeyword(value);
+                pager.reset();
+              }}
+              placeholder="Search by title or description…"
+              className="xl:min-w-40 xl:flex-1"
             />
-            <div className="relative lg:w-56">
-              <CalendarDays className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
-              <Select
-                aria-label="Sort by date or title"
-                value={knownSort ? sortValue : ''}
-                placeholder={knownSort ? undefined : 'Custom sort'}
-                onChange={(event) => {
-                  const [sortBy, direction] = event.target.value.split(':');
-                  if (sortBy) pager.setSort(sortBy, direction);
-                }}
-                options={SORTS}
-                selectClassName="pl-9"
-              />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:flex">
+              <div className="relative xl:w-40">
+                <ArrowUpDown className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+                <Select
+                  aria-label="Sort by"
+                  value={knownSort ? sortValue : ''}
+                  placeholder={knownSort ? undefined : 'Custom sort'}
+                  onChange={(event) => {
+                    const [sortBy, direction] = event.target.value.split(':');
+                    if (sortBy) pager.setSort(sortBy, direction);
+                  }}
+                  options={SORTS}
+                  selectClassName="pl-9"
+                />
+              </div>
+              {canViewAll && (
+                <div className="relative xl:w-40">
+                  <Layers className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+                  <Select
+                    aria-label="Whose requests"
+                    value={scope}
+                    onChange={(event) => updateParam('scope', event.target.value === 'mine' ? 'mine' : '')}
+                    options={[
+                      { value: 'all', label: 'All requests' },
+                      { value: 'mine', label: 'My requests' },
+                    ]}
+                    selectClassName="pl-9"
+                  />
+                </div>
+              )}
+              <div className="relative xl:w-40">
+                <Tag className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+                <Select
+                  aria-label="Status"
+                  value={searching ? '' : status}
+                  onChange={(event) => updateParam('status', event.target.value)}
+                  disabled={searching}
+                  title={searching ? 'A search covers all statuses' : undefined}
+                  options={[
+                    { value: '', label: 'All statuses' },
+                    ...STATUSES.map((value) => ({ value, label: countOf(value).data != null ? `${humanize(value)} (${countOf(value).data})` : humanize(value) })),
+                  ]}
+                  selectClassName="pl-9"
+                />
+              </div>
+              <div className="relative xl:w-40">
+                <CalendarDays className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+                <Select aria-label="Created date range" value={range} onChange={(event) => setRange(event.target.value)} options={DATE_RANGES} selectClassName="pl-9" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {filteredView && (
+                <Button variant="ghost" onClick={clearFilters}>
+                  Clear
+                </Button>
+              )}
+              <Button variant="secondary" icon={Download} onClick={exportCsv} loading={exporting}>
+                Export
+              </Button>
             </div>
           </div>
-          <div className="flex items-center gap-2 lg:ml-auto">
-            {canViewAll && (
-              <div className="relative">
-                <Button variant="secondary" icon={ListFilter} onClick={() => setFiltersOpen((value) => !value)} aria-expanded={filtersOpen}>
-                  Filters
-                  {activeFilters > 0 && <span className="num ml-1 rounded-full bg-brand-600 px-1.5 text-2xs font-semibold text-white">{activeFilters}</span>}
-                </Button>
-                <FilterPopover open={filtersOpen} onClose={() => setFiltersOpen(false)}>
-                  <fieldset>
-                    <legend className="text-13 font-semibold text-slate-900">Whose requests</legend>
-                    <div className="mt-2 space-y-1.5">
-                      {[
-                        { value: 'all', label: 'All requests in the organization' },
-                        { value: 'mine', label: 'Only requests I raised' },
-                      ].map((option) => (
-                        <label key={option.value} className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-13 text-slate-700 hover:bg-slate-50">
-                          <input
-                            type="radio"
-                            name="scope"
-                            className="accent-brand-600"
-                            checked={scope === option.value}
-                            onChange={() => updateParam('scope', option.value === 'mine' ? 'mine' : '')}
-                          />
-                          {option.label}
-                        </label>
-                      ))}
-                    </div>
-                  </fieldset>
-                  <div className="mt-4 flex justify-between border-t border-line pt-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setKeyword('');
-                        setSearchParams({}, { replace: true });
-                        pager.reset();
-                        setFiltersOpen(false);
-                      }}
-                    >
-                      Reset all
-                    </Button>
-                    <Button size="sm" onClick={() => setFiltersOpen(false)}>
-                      Done
-                    </Button>
-                  </div>
-                </FilterPopover>
-              </div>
-            )}
-            <Button variant="secondary" icon={Download} onClick={exportCsv} loading={exporting}>
-              {selected.size ? `Export (${selected.size})` : 'Export'}
-            </Button>
-            <button type="button" className={ICON_BUTTON} onClick={refreshAll} aria-label="Refresh" title="Refresh">
-              <RefreshCw className={cn('h-4 w-4', query.isFetching && 'animate-spin')} aria-hidden="true" />
-            </button>
-          </div>
+          {range === 'custom' && (
+            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
+              <Input label="Created from" type="date" value={from} max={to || undefined} onChange={(event) => updateParam('from', event.target.value)} className="sm:w-48" />
+              <Input label="Created to" type="date" value={to} min={from || undefined} onChange={(event) => updateParam('to', event.target.value)} className="sm:w-48" />
+              {!from && !to && <p className="pb-2 text-xs text-slate-500">Pick a start and/or end date.</p>}
+            </div>
+          )}
+          {searching && <p className="mt-2 text-xs text-slate-500">Searching all statuses. Clear the search to filter by status.</p>}
         </div>
-        {searching && <p className="mt-2 text-xs text-slate-500">Searching all statuses. Clear the search to filter by status.</p>}
-      </section>
-
-      {/* Table */}
-      <section aria-label="Procurement requests" className="card mt-5 overflow-hidden">
-        {selected.size > 0 && (
-          <div className="flex flex-wrap items-center gap-3 border-b border-line bg-brand-50/50 px-5 py-2.5 text-13">
-            <span className="font-medium text-slate-900">
-              {formatNumber(selected.size)} selected
-            </span>
-            <button type="button" className="font-medium text-brand-700 hover:underline" onClick={exportCsv}>
-              Export selected
-            </button>
-            <button type="button" className="text-slate-500 hover:text-slate-900" onClick={() => setSelected(new Map())}>
-              Clear selection
-            </button>
-          </div>
-        )}
 
         {/* Desktop / tablet: table */}
         <div className="hidden md:block">
@@ -487,19 +506,18 @@ export default function ProcurementListPage() {
             caption="Procurement requests"
             columns={columns}
             rows={page.items}
-            loading={query.isLoading}
-            error={query.error}
-            onRetry={query.refetch}
+            loading={listQuery.isLoading}
+            error={listQuery.error}
+            onRetry={listQuery.refetch}
             onRowClick={(row) => navigate(`/procurement/${row.id}`)}
             sort={{ sortBy: pager.sortBy, direction: pager.direction, onSort: pager.toggleSort }}
-            selection={{ isSelected: (row) => selected.has(row.id), onToggle: toggleRow, allSelected: allOnPage, someSelected: someOnPage, onToggleAll: toggleAll }}
             empty={empty}
           />
         </div>
 
         {/* Mobile: cards */}
         <div className="md:hidden">
-          {query.isLoading ? (
+          {listQuery.isLoading ? (
             <div className="divide-y divide-slate-100" aria-hidden="true">
               {[0, 1, 2].map((key) => (
                 <div key={key} className="space-y-2 p-4">
@@ -508,17 +526,16 @@ export default function ProcurementListPage() {
                 </div>
               ))}
             </div>
-          ) : query.error ? (
-            <ErrorState error={query.error} onRetry={query.refetch} />
+          ) : listQuery.error ? (
+            <ErrorState error={listQuery.error} onRetry={listQuery.refetch} />
           ) : page.items.length === 0 ? (
             <EmptyState title={empty.title} action={empty.action} />
           ) : (
             <ul className="divide-y divide-slate-100">
               {page.items.map((row) => (
-                <li key={row.id} className={cn('p-4', selected.has(row.id) && 'bg-brand-50/40')}>
-                  <div className="flex items-start gap-3">
-                    <input type="checkbox" className="checkbox-base mt-3" checked={selected.has(row.id)} onChange={() => toggleRow(row)} aria-label={`Select ${row.title}`} />
-                    <div className="min-w-0 flex-1">
+                <li key={row.id} className="p-4">
+                  <div>
+                    <div className="min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <RequestCell row={row} />
                         <StatusBadge status={row.status} />
@@ -554,7 +571,7 @@ export default function ProcurementListPage() {
           )}
         </div>
 
-        <Pagination {...page} onPageChange={pager.setPage} onSizeChange={pager.setSize} disabled={query.isFetching} noun={['request', 'requests']} />
+        <Pagination {...page} onPageChange={pager.setPage} onSizeChange={pager.setSize} disabled={listQuery.isFetching} noun={['request', 'requests']} />
       </section>
 
       <ConfirmDialog

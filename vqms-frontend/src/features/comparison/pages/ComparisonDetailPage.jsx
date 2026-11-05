@@ -22,6 +22,7 @@ import { formatCurrency, formatNumber, formatPercent } from '@/utils/formatCurre
 import { humanize } from '@/utils/constants';
 import { recommendationService } from '@/features/recommendation/recommendationService';
 import { comparisonKeys, comparisonService } from '../comparisonService';
+import { comparisonPermissions } from '../comparisonActions';
 
 // Neutral, distinguishable tones for criteria weights (no status meaning).
 
@@ -184,6 +185,7 @@ export default function ComparisonDetailPage() {
   if (comparison.error) return <ErrorState error={comparison.error} onRetry={comparison.refetch} />;
 
   const data = comparison.data;
+  const permissions = comparisonPermissions(data, can);
   // Ranked first (by backend rank), unranked/ineligible last.
   const rows = [...(results.data?.results || [])].sort((a, b) => (a.rank ?? Number.MAX_SAFE_INTEGER) - (b.rank ?? Number.MAX_SAFE_INTEGER));
   const lines = results.data?.lineComparisons || [];
@@ -250,17 +252,17 @@ export default function ComparisonDetailPage() {
 
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-3">
           <div className="flex flex-wrap items-center gap-2">
-            {can('comparison.manage') && data.status !== 'COMPLETED' && (
+            {permissions.canCalculate && (
               <Button variant={data.status === 'CREATED' || data.stale ? 'primary' : 'secondary'} icon={Calculator} onClick={() => calculate.mutate()} loading={calculate.isPending}>
-                {data.status === 'CREATED' ? 'Calculate' : 'Recalculate'}
+                {permissions.calculateLabel}
               </Button>
             )}
-            {can('comparison.complete') && data.status === 'CALCULATED' && (
+            {permissions.canComplete && (
               <Button variant="success" icon={Check} onClick={() => setConfirm('complete')}>
                 Complete
               </Button>
             )}
-            {can('recommendation.generate') && data.status === 'COMPLETED' && (
+            {permissions.canRecommend && (
               <Button icon={Lightbulb} onClick={() => recommend.mutate()} loading={recommend.isPending}>
                 Generate recommendation
               </Button>

@@ -9,7 +9,8 @@ import Input, { Textarea } from '@/components/common/Input';
 import EntitySelect, { isUuid } from '@/components/common/EntitySelect';
 import Alert from '@/components/common/Alert';
 import FileDrop from '@/components/common/FileDrop';
-import { FEATURES, FEATURE_MESSAGES } from '@/utils/features';
+import { FEATURE_MESSAGES, reportStorageError } from '@/utils/features';
+import { useDocumentStorage } from '@/hooks/useDocumentStorage';
 import { DOCUMENT_TYPES, toOptions } from '@/utils/constants';
 import { documentKeys, documentService } from '../documentService';
 
@@ -38,6 +39,7 @@ export default function DocumentUploadPage() {
   const [error, setError] = useState(null);
   const vendorOptions = useVendorOptions();
   const requestOptions = useRequestOptions();
+  const storageEnabled = useDocumentStorage();
 
   const set = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value }));
 
@@ -49,11 +51,11 @@ export default function DocumentUploadPage() {
       queryClient.invalidateQueries({ queryKey: documentKeys.all });
       navigate(`/documents/${document.id}`, { replace: true });
     },
-    onError: (err) => setError(err.fieldErrors && Object.keys(err.fieldErrors).length ? Object.values(err.fieldErrors).join(' ') : err.message),
+    onError: (err) => reportStorageError(err) || setError(err.fieldErrors && Object.keys(err.fieldErrors).length ? Object.values(err.fieldErrors).join(' ') : err.message),
   });
 
   const invalidId = ['quotationId', 'vendorId', 'procurementRequestId'].find((key) => form[key] && !isUuid(form[key]));
-  const ready = FEATURES.documentStorage && file && form.documentType && !invalidId;
+  const ready = storageEnabled && file && form.documentType && !invalidId;
 
   return (
     <>
@@ -67,7 +69,7 @@ export default function DocumentUploadPage() {
           if (ready) upload.mutate();
         }}
       >
-        {!FEATURES.documentStorage && <Alert tone="warning" className="mb-5">{FEATURE_MESSAGES.documentStorage}</Alert>}
+        {!storageEnabled && <Alert tone="warning" className="mb-5">{FEATURE_MESSAGES.documentStorage}</Alert>}
         {error && <Alert tone="error" className="mb-5">{error}</Alert>}
         <div className="card divide-y divide-line">
           <FormSection title="File" description="PDF, Excel or image, up to 20 MB.">

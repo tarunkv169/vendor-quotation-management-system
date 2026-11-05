@@ -1,7 +1,7 @@
 import { cn } from '@/utils/cn';
 
 /**
- * Tabs. tabs: [{ value, label, count? }]
+ * Tabs. tabs: [{ value, label, count?, icon? }]
  * variant="underline" (default): sits on top of a card / table.
  * variant="pill": rounded segmented filters with counts; the active one is filled dark.
  */
@@ -23,6 +23,7 @@ export default function Tabs({ tabs, value, onChange, className, label = 'Views'
                 active ? 'border-brand-600 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-900',
               )}
             >
+              {tab.icon && <tab.icon className={cn('h-4 w-4 shrink-0', active ? 'text-brand-600' : 'text-slate-400')} aria-hidden="true" />}
               {tab.label}
               {tab.count !== undefined && tab.count !== null && <span className="num rounded bg-slate-100 px-1.5 text-xs text-slate-600">{tab.count}</span>}
             </button>

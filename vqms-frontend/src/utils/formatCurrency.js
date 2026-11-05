@@ -1,5 +1,6 @@
 // Display-only formatting. All amounts come from the backend; the UI never recalculates totals.
-export function formatCurrency(amount, currency = 'USD') {
+/** `options` can override Intl.NumberFormat settings, e.g. { maximumFractionDigits: 0 } for totals. */
+export function formatCurrency(amount, currency = 'USD', options = {}) {
   if (amount === null || amount === undefined || amount === '') return '—';
   const value = Number(amount);
   if (Number.isNaN(value)) return String(amount);
@@ -8,6 +9,7 @@ export function formatCurrency(amount, currency = 'USD') {
       style: 'currency',
       currency: currency || 'USD',
       maximumFractionDigits: 2,
+      ...options,
     }).format(value);
   } catch {
     return `${value.toFixed(2)} ${currency || ''}`.trim();

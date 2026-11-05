@@ -1,6 +1,7 @@
 import { http } from '@/services/apiClient';
 import { API } from '@/services/apiEndpoints';
 import { compactParams, pageableParams } from '@/utils/pagination';
+import { reportStorageError } from '@/utils/features';
 
 const api = http('document');
 
@@ -31,7 +32,12 @@ export const documentKeys = {
 
 // Opens the pre-signed URL returned by the backend (never builds storage URLs itself).
 export async function openDocumentDownload(id) {
-  const result = await documentService.download(id);
-  if (result?.downloadUrl) window.open(result.downloadUrl, '_blank', 'noopener');
-  return result;
+  try {
+    const result = await documentService.download(id);
+    if (result?.downloadUrl) window.open(result.downloadUrl, '_blank', 'noopener');
+    return result;
+  } catch (error) {
+    reportStorageError(error); // marks storage as off for this session when the server says so
+    throw error;
+  }
 }

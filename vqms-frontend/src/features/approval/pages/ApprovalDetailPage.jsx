@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Ban, Check, ChevronsUp, CircleX } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useVendorNames } from '@/hooks/useVendorNames';
 import { useRequestTitles } from '@/hooks/useLookups';
@@ -21,16 +21,8 @@ import { humanize } from '@/utils/constants';
 import { approvalKeys, approvalService } from '../approvalService';
 import ApprovalTimeline from '../components/ApprovalTimeline';
 import { waitingDays } from '../approvalUtils';
+import { DECISIONS, DECISION_VARIANT } from '../approvalActions';
 
-// Comment is mandatory for reject and cancel (ApprovalDecisionRequest).
-const DECISIONS = {
-  approve: { label: 'Approve', icon: Check, reasonRequired: false },
-  reject: { label: 'Reject', icon: CircleX, tone: 'danger', reasonRequired: true },
-  escalate: { label: 'Escalate', icon: ChevronsUp, reasonRequired: false },
-  cancel: { label: 'Cancel approval', icon: Ban, tone: 'danger', reasonRequired: true },
-};
-
-const DECISION_VARIANT = { approve: 'success', reject: 'danger-outline', escalate: 'secondary', cancel: 'ghost' };
 
 export default function ApprovalDetailPage() {
   const { id } = useParams();
@@ -229,7 +221,7 @@ export default function ApprovalDetailPage() {
         message={decision === 'approve' && pendingStep ? `Approve level ${pendingStep.levelNumber} for ${formatCurrency(data.amount, data.currencyCode)}?` : undefined}
         tone={active?.tone}
         confirmLabel={active?.label}
-        reasonLabel="Comment"
+        reasonLabel={active?.reasonLabel}
         reasonRequired={active?.reasonRequired}
       />
     </>

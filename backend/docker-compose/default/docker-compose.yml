@@ -270,7 +270,12 @@ services:
 
   # React UI (vqms-frontend): nginx serves the build and forwards /api to the gateway.
   frontend:
-    build: ../../../vqms-frontend
+    build:
+      context: ../../../vqms-frontend
+      args:
+        # The UI shows upload/download and AI extraction only when the backend has them switched on.
+        VITE_FEATURE_DOCUMENT_STORAGE: ${S3_ENABLED:-false}
+        VITE_FEATURE_AI_EXTRACTION: ${LLM_ENABLED:-false}
     image: ${DOCKER_HUB_USER:-vqms}/vqms-frontend:${IMAGE_TAG:-latest}
     container_name: vqms-frontend
     restart: unless-stopped
