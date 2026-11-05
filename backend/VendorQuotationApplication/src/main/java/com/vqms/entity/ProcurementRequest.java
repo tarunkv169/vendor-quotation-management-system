@@ -6,7 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -45,6 +48,12 @@ public class ProcurementRequest {
 
     @Column
     private LocalDateTime requiredBy;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal budget;
+
+    @OneToMany(mappedBy = "procurementRequest", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProcurementItem> items = new ArrayList<>();
 
     // User ID from Identity Service
     @Column(name = "requester_id", nullable = false)

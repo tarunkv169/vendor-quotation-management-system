@@ -1,0 +1,226 @@
+@import "tailwindcss";
+
+/*
+  Design tokens: charcoal + orange theme.
+  - Frame / sidebar: deep charcoal. Working area: one slightly lighter charcoal surface.
+    Cards, panel bodies, inputs and menus sit one step lighter again ("surface").
+  - One accent (orange) for primary actions, links, focus and the active state only.
+  - Status colours appear only in badges, step indicators and data marks, never as decoration.
+
+  The `slate` scale is redefined as an inverted neutral (50 = darkest tint, 900 = near white), and the
+  50–200 / 700–900 steps of the status hues are re-tinted for a dark background. Every existing page
+  (which uses slate-* and status-* classes) therefore adopts the theme without per-page edits.
+  `white` is unchanged and only used for text on filled controls; surfaces use `bg-surface`.
+*/
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Neutrals: hover tints → borders → secondary text → primary text */
+  --color-slate-50: #424242;
+  --color-slate-100: #484848;
+  --color-slate-200: #535353;
+  --color-slate-300: #666666;
+  --color-slate-400: #8c8c8c;
+  --color-slate-500: #a6a6a6;
+  --color-slate-600: #bfbfbf;
+  --color-slate-700: #d6d6d6;
+  --color-slate-800: #e9e9e9;
+  --color-slate-900: #f7f7f7;
+
+  /* Accent: orange */
+  --color-brand-50: #3f2c20;
+  --color-brand-100: #523221;
+  --color-brand-200: #7a4423;
+  --color-brand-500: #ff7f36;
+  --color-brand-600: #f26a1b;
+  --color-brand-700: #ff8b4c;
+  --color-brand-800: #ffa775;
+
+  /* Status hues re-tinted for dark surfaces (tint backgrounds, readable light text) */
+  --color-red-50: #432a2a;
+  --color-red-100: #4f2e2e;
+  --color-red-200: #6e3636;
+  --color-red-300: #b35757;
+  --color-red-700: #f87171;
+  --color-red-800: #fca5a5;
+  --color-amber-50: #423624;
+  --color-amber-100: #4d3e25;
+  --color-amber-200: #6e5628;
+  --color-amber-700: #fbbf24;
+  --color-amber-800: #fcd34d;
+  --color-amber-900: #fde68a;
+  --color-emerald-50: #243d31;
+  --color-emerald-200: #2f5c46;
+  --color-emerald-700: #34d399;
+  --color-emerald-800: #6ee7b7;
+  --color-green-50: #243d2b;
+  --color-blue-50: #243447;
+  --color-blue-200: #2f4b6e;
+  --color-blue-700: #60a5fa;
+  --color-blue-800: #93c5fd;
+  --color-violet-50: #352b4a;
+  --color-violet-800: #c4b5fd;
+
+  --color-success: #22a559;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  --color-frame: #262626;
+  --color-workspace: #2f2f2f;
+  --color-surface: #383838;
+  --color-canvas: #2a2a2a;
+  --color-field: #2a2a2a;
+  --color-line: #474747;
+  --color-line-strong: #5a5a5a;
+
+  --color-sidebar: #1f1f1f;
+  --color-sidebar-hover: #2c2c2c;
+  --color-sidebar-active: #383838;
+  --color-sidebar-text: #c4c4c4;
+  --color-sidebar-muted: #7f7f7f;
+  --color-sidebar-strong: #ffffff;
+  --color-sidebar-line: #333333;
+
+  --radius-panel: 0.5rem;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-13: 0.8125rem;
+  --text-13--line-height: 1.25rem;
+}
+
+/*
+  Light theme: the same token names with light values, active when <html data-theme="light">.
+  Set by src/utils/theme.js (toggle in the top bar / sign-in page; remembered per browser).
+  The dark values above are the default.
+*/
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --color-slate-50: #fafaf9;
+  --color-slate-100: #f4f4f2;
+  --color-slate-200: #e7e7e5;
+  --color-slate-300: #d6d5d1;
+  --color-slate-400: #a3a29e;
+  --color-slate-500: #6b6b69;
+  --color-slate-600: #575755;
+  --color-slate-700: #3f3f3d;
+  --color-slate-800: #262625;
+  --color-slate-900: #171717;
+
+  --color-brand-50: #fff4ed;
+  --color-brand-100: #ffe4d1;
+  --color-brand-200: #fec7a4;
+  --color-brand-500: #f97316;
+  --color-brand-600: #f26a1b;
+  --color-brand-700: #c2410c;
+  --color-brand-800: #9a3412;
+
+  /* Status hues back to their standard light values */
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-300: #fca5a5;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-200: #a7f3d0;
+  --color-emerald-700: #047857;
+  --color-emerald-800: #065f46;
+  --color-green-50: #f0fdf4;
+  --color-blue-50: #eff6ff;
+  --color-blue-200: #bfdbfe;
+  --color-blue-700: #1d4ed8;
+  --color-blue-800: #1e40af;
+  --color-violet-50: #f5f3ff;
+  --color-violet-800: #5b21b6;
+
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+
+  --color-frame: #f8f7f3;
+  --color-workspace: #f6f6f4;
+  --color-surface: #ffffff;
+  --color-canvas: #f4f4f2;
+  --color-field: #ffffff;
+  --color-line: #e7e7e5;
+  --color-line-strong: #d6d5d1;
+
+  /* The sidebar stays dark in the light theme too. */
+  --color-sidebar: #1c1c1c;
+  --color-sidebar-hover: #2a2a2a;
+  --color-sidebar-active: #333333;
+  --color-sidebar-text: #c2c2c2;
+  --color-sidebar-muted: #7d7d7d;
+  --color-sidebar-strong: #ffffff;
+  --color-sidebar-line: #2e2e2e;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  body {
+    @apply bg-frame text-sm text-slate-800;
+  }
+  h1, h2, h3, h4 {
+    @apply text-slate-900;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-500;
+  }
+  ::selection {
+    @apply bg-brand-100;
+  }
+}
+
+@layer components {
+  .card {
+    /* min-w-0: cards inside grids may shrink below their content width (prevents page overflow). */
+    @apply min-w-0 rounded-md border border-line bg-surface;
+  }
+  /* Section: one bordered box with a header row (no nested containers). */
+  .panel {
+    @apply min-w-0 rounded-md border border-line bg-surface;
+  }
+  .panel-body {
+    @apply rounded-b-md;
+  }
+  .checkbox-base {
+    @apply h-4 w-4 cursor-pointer rounded border-line-strong accent-brand-600 align-middle;
+  }
+  .input-base {
+    @apply block h-9 w-full rounded-md border border-line-strong bg-field px-3 text-sm text-slate-900
+      placeholder:text-slate-400 hover:border-slate-300 focus:border-brand-500 focus:outline-none focus:ring-3 focus:ring-brand-500/25
+      disabled:cursor-not-allowed disabled:bg-workspace disabled:text-slate-400;
+  }
+  textarea.input-base {
+    @apply h-auto py-2;
+  }
+  /* Native select with a consistent chevron (keeps keyboard and screen-reader behaviour). */
+  .select-base {
+    @apply appearance-none bg-no-repeat pr-9;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23a6a6a6'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-position: right 0.6rem center;
+    background-size: 1rem;
+  }
+  .input-error {
+    @apply border-red-400 hover:border-red-400 focus:border-red-500 focus:ring-red-500/15;
+  }
+  .label-base {
+    @apply mb-1.5 block text-13 font-medium text-slate-700;
+  }
+  .num {
+    @apply tabular-nums;
+  }
+}

@@ -1,0 +1,17 @@
+VendorQuotationApplication   port 8081 is used by another program -> using 18081
+audit-service                port 8088 is used by another program -> using 18088
+gateway-service              port 8080 is used by another program -> using 18080
+eureka-service               port 8761   pid 6788   listening (8s)
+VendorQuotationApplication   port 18081  pid 18044  listening (12s)
+quotation-service            port 8082   pid 28788  listening (10s)
+document-service             port 8083   pid 25720  listening (13s)
+validation-service           port 8084   pid 2688   listening (13s)
+comparison-service           port 8085   pid 19200  listening (11s)
+recommendation-service       port 8086   pid 11152  listening (13s)
+approval-service             port 8087   pid 6036   listening (13s)
+audit-service                port 18088  pid 14816  listening (16s)
+notification-service         port 8089   pid 16048  listening (27s)
+ai-extraction-service        port 8090   pid 14168  listening (9s)
+reporting-service            port 8091   pid 23920  listening (22s)
+gateway-service              port 18080  pid 26016  listening (11s)
+Gateway: http://localhost:18080   Eureka: http://localhost:8761

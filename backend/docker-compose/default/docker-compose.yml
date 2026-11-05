@@ -1,0 +1,291 @@
+# =====================================================================================
+# VQMS - full platform in Docker (14 containers + optional LocalStack S3)
+#
+#   1. copy .env.example to .env (same folder) and check the values
+#   2. docker compose up -d --build          # builds every image from source, then starts
+#   3. open  UI http://localhost:3000   Gateway http://localhost:8080   Eureka http://localhost:8761
+#
+#   docker compose ps                         # status of every container
+#   docker compose logs -f gateway-service    # follow one service
+#   docker compose down                       # stop (data is kept in the postgres-data volume)
+#   docker compose --profile s3 up -d --build   # + LocalStack S3
+#
+# Images are tagged ${DOCKER_HUB_USER}/vqms-<service>:${IMAGE_TAG}. They are built locally by
+# "--build"; nothing has to exist on Docker Hub. Publishing: see docker-publish.ps1.
+# Only the gateway (8080), UI (3000) and Eureka (8761) publish ports; the rest talk on the
+# internal network. Every Java service registers with Eureka (EUREKA_ENABLED=true).
+# Memory: each Java container uses a small JVM (192 MB heap) capped at 448 MB, so the whole stack
+# needs about 4.5 GB of Docker memory. Give Docker/WSL at least 5 GB (see README / .wslconfig) and do
+# not run the run-local.ps1 services at the same time.
+# =====================================================================================
+
+x-java-env: &java-env
+  JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+  JWT_ALGORITHM: ${JWT_ALGORITHM:-HS512}
+  DB_USERNAME: postgres
+  DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+  EUREKA_ENABLED: ${EUREKA_ENABLED:-true}
+  EUREKA_URL: http://eureka-service:8761/eureka/
+  QUOTATION_SERVICE_URL: http://quotation-service:8082
+  VENDOR_SERVICE_URL: http://monolith:8081
+  PROCUREMENT_SERVICE_URL: http://monolith:8081
+  IDENTITY_SERVICE_URL: http://monolith:8081
+  DOCUMENT_SERVICE_URL: http://document-service:8083
+  VALIDATION_SERVICE_URL: http://validation-service:8084
+  COMPARISON_SERVICE_URL: http://comparison-service:8085
+  RECOMMENDATION_SERVICE_URL: http://recommendation-service:8086
+  APPROVAL_SERVICE_URL: http://approval-service:8087
+  NOTIFICATION_SERVICE_URL: http://notification-service:8089
+  # Small connection pools: 11 services x 10 connections would exceed PostgreSQL's default limit (100).
+  SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "4"
+  SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: "1"
+  # Lean JVM, identical to run-local.ps1 (proven on an 8 GB laptop): ~300-350 MB per service.
+  JAVA_OPTS: &lean-jvm "-Xms32m -Xmx192m -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=48m -Xss512k -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError"
+
+x-java-service: &java-service
+  restart: unless-stopped
+  mem_limit: 448m
+  networks: [vqms-network]
+  depends_on:
+    postgres:
+      condition: service_healthy
+    eureka-service:
+      condition: service_healthy
+
+services:
+  # ------------------------------------------------------------------ infrastructure
+  postgres:
+    image: postgres:16-alpine
+    container_name: vqms-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    command: ["postgres", "-c", "max_connections=200"]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    # Not published by default; uncomment to reach the container database from the host.
+    # ports:
+    #   - "5433:5432"
+    networks: [vqms-network]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  eureka-service:
+    build: ../../eureka-service
+    image: ${DOCKER_HUB_USER:-vqms}/vqms-eureka-service:${IMAGE_TAG:-latest}
+    container_name: vqms-eureka
+    restart: unless-stopped
+    mem_limit: 384m
+    environment:
+      EUREKA_HOSTNAME: eureka-service
+      JAVA_OPTS: *lean-jvm
+    ports:
+      - "8761:8761"
+    networks: [vqms-network]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  # Local S3 for the Document Service (profile "s3"). Create the bucket once:
+  #   docker exec vqms-localstack awslocal s3 mb s3://vqms-documents-dev
+  localstack:
+    image: localstack/localstack:4.0
+    container_name: vqms-localstack
+    profiles: [s3]
+    environment:
+      SERVICES: s3
+    networks: [vqms-network]
+
+  # ------------------------------------------------------------------ core services
+  monolith:   # Identity (login / JWT), Vendor, Procurement, Settings, Quotations used by the UI
+    <<: *java-service
+    build: ../../VendorQuotationApplication
+    image: ${DOCKER_HUB_USER:-vqms}/vqms-monolith:${IMAGE_TAG:-latest}
+    container_name: vqms-monolith
+    environment:
+      <<: *java-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vqms
+    volumes:
+      - uploads-data:/app/uploads
+
+  quotation-service:
+    <<: *java-service
+    build: ../../quotation-service
+    image: ${DOCKER_HUB_USER:-vqms}/vqms-quotation-service:${IMAGE_TAG:-latest}
+    container_name: vqms-quotation
+    environment:
+      <<: *java-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/quotation_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SERVICES_VENDOR_BASE_URL: http://monolith:8081
+      SERVICES_PROCUREMENT_BASE_URL: http://monolith:8081
+
+  document-service:
+    <<: *java-service
+    build: ../../document-service
+    image: ${DOCKER_HUB_USER:-vqms}/vqms-document-service:${IMAGE_TAG:-latest}
+    container_name: vqms-document
+    environment:
+      <<: *java-env
+      DB_URL: jdbc:postgresql://postgres:5432/document_db
+      S3_ENABLED: ${S3_ENABLED:-false}
+      S3_BUCKET: ${S3_BUCKET:-vqms-documents-dev}
+      AWS_REGION: ${AWS_REGION:-ap-south-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
+      S3_ENDPOINT: http://localstack:4566
+      S3_PATH_STYLE: "true"
+
+  ai-extraction-service:   # Python / FastAPI. Reached by the gateway directly (not registered in Eureka).
+    build: ../../ai-extraction-service
+    image: ${DOCKER_HUB_USER:-vqms}/vqms-ai-extraction-service:${IMAGE_TAG:-latest}
+    container_name: vqms-ai-extraction
+    restart: unless-stopped
+    mem_limit: 512m
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8090 --proxy-headers"]
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS512}
+      DATABASE_URL: postgresql+asyncpg://postgres:${DB_PASSWORD}@postgres:5432/extraction_db
+      DOCUMENT_SERVICE_BASE_URL: http://document-service:8083
+      ALLOWED_DOWNLOAD_HOSTS: '["localstack","localhost"]'
+      ENVIRONMENT: local
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      LLM_ENABLED: ${LLM_ENABLED:-false}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [vqms-network]
+
+  validation-service:
+    <<: *java-service
+    build: ../../validation-service
+    image: ${DOCKER_HUB_USER:-vqms}/vqms-validation-service:${IMAGE_TAG:-latest}
+    container_name: vqms-validation
+    environment:
+      <<: *java-env
+      DB_URL: jdbc:postgresql://postgres:5432/validation_db
+
+  comparison-service:
+    <<: *java-service
+    build: ../../comparison-service
+    image: ${DOCKER_HUB_USER:-vqms}/vqms-comparison-service:${IMAGE_TAG:-latest}
+    container_name: vqms-comparison
+    environment:
+      <<: *java-env
+      DB_URL: jdbc:postgresql://postgres:5432/comparison_db
+
+  recommendation-service:
+    <<: *java-service
+    build: ../../recommendation-service
+    image: ${DOCKER_HUB_USER:-vqms}/vqms-recommendation-service:${IMAGE_TAG:-latest}
+    container_name: vqms-recommendation
+    environment:
+      <<: *java-env
+      DB_URL: jdbc:postgresql://postgres:5432/recommendation_db
+
+  approval-service:
+    <<: *java-service
+    build: ../../approval-service
+    image: ${DOCKER_HUB_USER:-vqms}/vqms-approval-service:${IMAGE_TAG:-latest}
+    container_name: vqms-approval
+    environment:
+      <<: *java-env
+      DB_URL: jdbc:postgresql://postgres:5432/approval_db
+      RECOMMENDATION_SERVICE_URL: http://recommendation-service:8086
+
+  audit-service:
+    <<: *java-service
+    build: ../../audit-service
+    image: ${DOCKER_HUB_USER:-vqms}/vqms-audit-service:${IMAGE_TAG:-latest}
+    container_name: vqms-audit
+    environment:
+      <<: *java-env
+      DB_URL: jdbc:postgresql://postgres:5432/audit_db
+
+  notification-service:
+    <<: *java-service
+    build: ../../notification-service
+    image: ${DOCKER_HUB_USER:-vqms}/vqms-notification-service:${IMAGE_TAG:-latest}
+    container_name: vqms-notification
+    environment:
+      <<: *java-env
+      DB_URL: jdbc:postgresql://postgres:5432/notification_db
+      EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
+      MAIL_HOST: ${MAIL_HOST:-localhost}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+
+  reporting-service:
+    <<: *java-service
+    build: ../../reporting-service
+    image: ${DOCKER_HUB_USER:-vqms}/vqms-reporting-service:${IMAGE_TAG:-latest}
+    container_name: vqms-reporting
+    environment:
+      <<: *java-env
+      DB_URL: jdbc:postgresql://postgres:5432/reporting_db
+
+  # ------------------------------------------------------------------ edge
+  gateway-service:
+    build: ../../gateway-service
+    image: ${DOCKER_HUB_USER:-vqms}/vqms-gateway-service:${IMAGE_TAG:-latest}
+    container_name: vqms-gateway
+    restart: unless-stopped
+    mem_limit: 448m
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS512}
+      EUREKA_ENABLED: ${EUREKA_ENABLED:-true}
+      EUREKA_URL: http://eureka-service:8761/eureka/
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+      MONOLITH_URI: http://monolith:8081
+      DOCUMENT_SERVICE_URI: http://document-service:8083
+      AI_EXTRACTION_SERVICE_URI: http://ai-extraction-service:8090
+      VALIDATION_SERVICE_URI: http://validation-service:8084
+      COMPARISON_SERVICE_URI: http://comparison-service:8085
+      RECOMMENDATION_SERVICE_URI: http://recommendation-service:8086
+      APPROVAL_SERVICE_URI: http://approval-service:8087
+      AUDIT_SERVICE_URI: http://audit-service:8088
+      NOTIFICATION_SERVICE_URI: http://notification-service:8089
+      REPORTING_SERVICE_URI: http://reporting-service:8091
+      JAVA_OPTS: *lean-jvm
+    ports:
+      - "8080:8080"
+    depends_on:
+      eureka-service:
+        condition: service_healthy
+    networks: [vqms-network]
+
+  # React UI (vqms-frontend): nginx serves the build and forwards /api to the gateway.
+  frontend:
+    build: ../../../vqms-frontend
+    image: ${DOCKER_HUB_USER:-vqms}/vqms-frontend:${IMAGE_TAG:-latest}
+    container_name: vqms-frontend
+    restart: unless-stopped
+    environment:
+      API_GATEWAY_URL: http://gateway-service:8080
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway-service
+    networks: [vqms-network]
+
+volumes:
+  postgres-data:
+  uploads-data:
+
+networks:
+  vqms-network:
+    driver: bridge

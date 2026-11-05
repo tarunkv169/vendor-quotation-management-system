@@ -7,7 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -28,6 +30,10 @@ public class ProcurementRequestResponse {
     private ProcurementStatus status;
 
     private LocalDateTime requiredBy;
+
+    private BigDecimal budget;
+
+    private List<ProcurementItemResponse> items;
 
     private UUID requesterId;
 

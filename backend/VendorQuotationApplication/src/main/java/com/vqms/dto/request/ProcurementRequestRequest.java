@@ -1,6 +1,7 @@
 
 package com.vqms.dto.request;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,7 +12,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -52,4 +55,9 @@ public class ProcurementRequestRequest {
     @NotNull(message = "Required delivery date is required")
     @Future(message = "Required delivery date must be in the future")
     private LocalDateTime requiredBy;
+
+    private BigDecimal budget;
+
+    @Valid
+    private List<ProcurementItemRequest> items;
 }

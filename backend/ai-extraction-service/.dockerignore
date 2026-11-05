@@ -1,0 +1,8 @@
+# Local environments and caches are not needed in the image build context.
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.env
+*.log

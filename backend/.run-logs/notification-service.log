@@ -1,0 +1,98 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.1)
+
+2026-11-04T09:40:49.161+05:30  INFO [] 15392 --- [notification-service] [           main] c.v.n.NotificationServiceApplication     : Starting NotificationServiceApplication v0.0.1-SNAPSHOT using Java 21.0.13.0.3 with PID 15392 (C:\Users\hp\Dropbox\My PC (LAPTOP-DQD1CDSC)\Downloads\vendor-quotation-management-system\vendor-quotation-management-system\backend\notification-service\target\notification-service-0.0.1-SNAPSHOT.jar started by hp in C:\Users\hp\Dropbox\My PC (LAPTOP-DQD1CDSC)\Downloads\vendor-quotation-management-system\vendor-quotation-management-system\backend\notification-service)
+2026-11-04T09:40:49.167+05:30  INFO [] 15392 --- [notification-service] [           main] c.v.n.NotificationServiceApplication     : No active profile set, falling back to 1 default profile: "default"
+2026-11-04T09:40:55.166+05:30  INFO [] 15392 --- [notification-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-04T09:40:55.989+05:30  INFO [] 15392 --- [notification-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 757 ms. Found 4 JPA repository interfaces.
+2026-11-04T09:40:57.343+05:30  INFO [] 15392 --- [notification-service] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=60426ae3-da13-377e-bb0e-84f182e9a009
+2026-11-04T09:41:00.654+05:30  INFO [] 15392 --- [notification-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8089 (http)
+2026-11-04T09:41:00.713+05:30  INFO [] 15392 --- [notification-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-04T09:41:00.714+05:30  INFO [] 15392 --- [notification-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.34]
+2026-11-04T09:41:00.891+05:30  INFO [] 15392 --- [notification-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-11-04T09:41:00.893+05:30  INFO [] 15392 --- [notification-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 11636 ms
+2026-11-04T09:41:02.524+05:30  INFO [] 15392 --- [notification-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-04T09:41:03.146+05:30  INFO [] 15392 --- [notification-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@1a8e44fe
+2026-11-04T09:41:03.151+05:30  INFO [] 15392 --- [notification-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-04T09:41:03.220+05:30  INFO [] 15392 --- [notification-service] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/notification_db (PostgreSQL 18.6)
+2026-11-04T09:41:03.277+05:30  WARN [] 15392 --- [notification-service] [           main] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 18.6 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 17.
+2026-11-04T09:41:03.442+05:30  INFO [] 15392 --- [notification-service] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 2 migrations (execution time 00:00.113s)
+2026-11-04T09:41:03.467+05:30  INFO [] 15392 --- [notification-service] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 2
+2026-11-04T09:41:03.471+05:30  INFO [] 15392 --- [notification-service] [           main] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-11-04T09:41:03.790+05:30  INFO [] 15392 --- [notification-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-11-04T09:41:04.132+05:30  INFO [] 15392 --- [notification-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.4.Final
+2026-11-04T09:41:04.278+05:30  INFO [] 15392 --- [notification-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-11-04T09:41:05.538+05:30  INFO [] 15392 --- [notification-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-04T09:41:05.923+05:30  INFO [] 15392 --- [notification-service] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 18.6
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-04T09:41:09.721+05:30  INFO [] 15392 --- [notification-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-04T09:41:09.914+05:30  INFO [] 15392 --- [notification-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-04T09:41:12.865+05:30  INFO [] 15392 --- [notification-service] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-11-04T09:41:15.834+05:30  INFO [] 15392 --- [notification-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-11-04T09:41:17.174+05:30  INFO [] 15392 --- [notification-service] [           main] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestTemplate.
+2026-11-04T09:41:17.277+05:30  WARN [] 15392 --- [notification-service] [           main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-11-04T09:41:17.385+05:30  INFO [] 15392 --- [notification-service] [           main] o.s.c.n.eureka.InstanceInfoFactory       : Setting initial instance status as: STARTING
+2026-11-04T09:41:17.434+05:30  INFO [] 15392 --- [notification-service] [           main] com.netflix.discovery.DiscoveryClient    : Initializing Eureka in region us-east-1
+2026-11-04T09:41:17.440+05:30  INFO [] 15392 --- [notification-service] [           main] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T09:41:17.454+05:30  INFO [] 15392 --- [notification-service] [           main] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
+2026-11-04T09:41:17.454+05:30  INFO [] 15392 --- [notification-service] [           main] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
+2026-11-04T09:41:17.454+05:30  INFO [] 15392 --- [notification-service] [           main] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
+2026-11-04T09:41:17.454+05:30  INFO [] 15392 --- [notification-service] [           main] com.netflix.discovery.DiscoveryClient    : Application is null : false
+2026-11-04T09:41:17.454+05:30  INFO [] 15392 --- [notification-service] [           main] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
+2026-11-04T09:41:17.454+05:30  INFO [] 15392 --- [notification-service] [           main] com.netflix.discovery.DiscoveryClient    : Application version is -1: true
+2026-11-04T09:41:17.454+05:30  INFO [] 15392 --- [notification-service] [           main] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
+2026-11-04T09:41:17.743+05:30  INFO [] 15392 --- [notification-service] [           main] com.netflix.discovery.DiscoveryClient    : The response status is 200
+2026-11-04T09:41:17.745+05:30  INFO [] 15392 --- [notification-service] [           main] com.netflix.discovery.DiscoveryClient    : Starting heartbeat executor: renew interval is: 30
+2026-11-04T09:41:17.747+05:30  INFO [] 15392 --- [notification-service] [           main] c.n.discovery.InstanceInfoReplicator     : InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-11-04T09:41:17.748+05:30  INFO [] 15392 --- [notification-service] [           main] com.netflix.discovery.DiscoveryClient    : Discovery Client initialized at timestamp 1793765477748 with initial instances count: 1
+2026-11-04T09:41:17.755+05:30  INFO [] 15392 --- [notification-service] [           main] o.s.c.n.e.s.EurekaServiceRegistry        : Registering application NOTIFICATION-SERVICE with eureka with status UP
+2026-11-04T09:41:17.756+05:30  INFO [] 15392 --- [notification-service] [           main] com.netflix.discovery.DiscoveryClient    : Saw local status change event StatusChangeEvent [timestamp=1793765477756, current=UP, previous=STARTING]
+2026-11-04T09:41:17.757+05:30  INFO [] 15392 --- [notification-service] [foReplicator-%d] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_NOTIFICATION-SERVICE/LAPTOP-DQD1CDSC:notification-service:8089: registering service...
+2026-11-04T09:41:17.775+05:30  INFO [] 15392 --- [notification-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8089 (http) with context path '/'
+2026-11-04T09:41:17.776+05:30  INFO [] 15392 --- [notification-service] [           main] .s.c.n.e.s.EurekaAutoServiceRegistration : Updating port to 8089
+2026-11-04T09:41:17.797+05:30  INFO [] 15392 --- [notification-service] [foReplicator-%d] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_NOTIFICATION-SERVICE/LAPTOP-DQD1CDSC:notification-service:8089 - registration status: 204
+2026-11-04T09:41:17.798+05:30  INFO [] 15392 --- [notification-service] [           main] c.v.n.NotificationServiceApplication     : Started NotificationServiceApplication in 29.418 seconds (process running for 30.423)
+2026-11-04T09:44:03.864+05:30  INFO [] 15392 --- [notification-service] [nio-8089-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-04T09:44:03.869+05:30  INFO [] 15392 --- [notification-service] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-04T09:44:03.902+05:30  INFO [] 15392 --- [notification-service] [nio-8089-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 32 ms
+2026-11-04T09:46:17.491+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T09:51:17.509+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T09:56:17.528+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:01:17.557+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:06:17.589+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:11:17.606+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:16:17.627+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:21:17.656+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:26:17.712+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:31:17.746+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:36:17.788+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:41:17.817+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:46:17.840+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:51:17.889+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:56:17.916+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T11:01:17.968+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T11:06:18.020+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T11:11:18.066+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T11:16:18.093+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T11:21:18.122+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T11:26:18.145+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T12:01:30.434+05:30  WARN [] 15392 --- [notification-service] [l-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=33m54s953ms459µs).
+2026-11-04T12:04:43.115+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T12:09:43.145+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T12:14:43.164+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T12:19:43.182+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T12:24:43.210+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T12:29:43.235+05:30  INFO [] 15392 --- [notification-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration

@@ -1,0 +1,10 @@
+INFO:     Started server process [17240]
+INFO:     Waiting for application startup.
+{"timestamp": "2026-11-04 09:43:51,076", "level": "INFO", "logger": "app.messaging.rabbitmq_publisher", "message": "RabbitMQ disabled (RABBITMQ_ENABLED=false); messaging is off", "correlation_id": null, "request_id": null, "service": "ai-extraction-service"}
+{"timestamp": "2026-11-04 09:43:51,076", "level": "INFO", "logger": "app.main", "message": "API started (environment=local)", "correlation_id": null, "request_id": null, "service": "ai-extraction-service"}
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8090 (Press CTRL+C to quit)
+INFO:     127.0.0.1:61436 - "GET /api/v1/health/ready HTTP/1.1" 200 OK
+INFO:     0:0:0:0:0:0:0:1:0 - "GET /api/v1/extractions/document/473f3aae-d444-41da-9e51-d0a93edd08f7 HTTP/1.1" 200 OK
+INFO:     0:0:0:0:0:0:0:1:0 - "GET /api/v1/extractions/document/473f3aae-d444-41da-9e51-d0a93edd08f7 HTTP/1.1" 200 OK
+INFO:     0:0:0:0:0:0:0:1:0 - "GET /api/v1/extractions/document/473f3aae-d444-41da-9e51-d0a93edd08f7 HTTP/1.1" 200 OK

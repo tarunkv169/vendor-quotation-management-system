@@ -1,13 +1,16 @@
 
 package com.vqms.service;
 
+import com.vqms.dto.request.ProcurementItemRequest;
 import com.vqms.dto.request.ProcurementRequestRequest;
+import com.vqms.dto.response.ProcurementItemResponse;
 import com.vqms.dto.response.ProcurementRequestResponse;
 import com.vqms.entity.ProcurementStatus;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface ProcurementRequestService {
@@ -120,5 +123,74 @@ public interface ProcurementRequestService {
     boolean hasStatus(
             UUID requestId,
             ProcurementStatus status
+    );
+
+    // ==================================================
+    // LINE ITEM MANAGEMENT
+    // ==================================================
+
+    // Add a line item to a procurement request
+    ProcurementItemResponse addItem(
+            UUID requestId,
+            ProcurementItemRequest itemRequest,
+            UUID currentUserId,
+            boolean procurementAdmin
+    );
+
+    // Update a line item
+    ProcurementItemResponse updateItem(
+            UUID requestId,
+            UUID itemId,
+            ProcurementItemRequest itemRequest,
+            UUID currentUserId,
+            boolean procurementAdmin
+    );
+
+    // Delete a line item
+    void deleteItem(
+            UUID requestId,
+            UUID itemId,
+            UUID currentUserId,
+            boolean procurementAdmin
+    );
+
+    // Get all items for a procurement request
+    List<ProcurementItemResponse> getItems(
+            UUID requestId,
+            UUID currentUserId,
+            boolean procurementAdmin
+    );
+
+    // Get a single item
+    ProcurementItemResponse getItem(
+            UUID requestId,
+            UUID itemId,
+            UUID currentUserId,
+            boolean procurementAdmin
+    );
+
+    // ==================================================
+    // EXTENDED STATUS TRANSITIONS
+    // ==================================================
+
+    // Transition from APPROVED to QUOTATION_REQUESTED
+    ProcurementRequestResponse requestQuotations(
+            UUID requestId,
+            UUID currentUserId,
+            boolean procurementAdmin
+    );
+
+    // Transition from QUOTATION_REQUESTED to UNDER_EVALUATION
+    ProcurementRequestResponse startEvaluation(
+            UUID requestId,
+            UUID currentUserId,
+            boolean procurementAdmin
+    );
+
+    // Transition from UNDER_EVALUATION to COMPLETED
+    ProcurementRequestResponse completeRequest(
+            UUID requestId,
+            UUID currentUserId,
+            boolean procurementAdmin
     );
 }

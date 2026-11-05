@@ -1,12 +1,22 @@
 
 package com.vqms.service.impl;
 
+import com.vqms.notification.NotificationType;
+import com.vqms.notification.Notifier;
+import com.vqms.notification.Notifier.Recipients;
+import com.vqms.repository.UserRepository;
+
+import com.vqms.dto.request.ProcurementItemRequest;
 import com.vqms.dto.request.ProcurementRequestRequest;
+import com.vqms.dto.response.ProcurementItemResponse;
 import com.vqms.dto.response.ProcurementRequestResponse;
+import com.vqms.entity.ProcurementItem;
 import com.vqms.entity.ProcurementRequest;
 import com.vqms.entity.ProcurementStatus;
 import com.vqms.exception.BadRequestException;
+import com.vqms.mapper.ProcurementItemMapper;
 import com.vqms.mapper.ProcurementRequestMapper;
+import com.vqms.repository.ProcurementItemRepository;
 import com.vqms.repository.ProcurementRequestRepository;
 import com.vqms.service.ProcurementRequestService;
 
@@ -21,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -30,7 +41,11 @@ public class ProcurementRequestServiceImpl
         implements ProcurementRequestService {
 
     private final ProcurementRequestRepository procurementRequestRepository;
+    private final ProcurementItemRepository procurementItemRepository;
     private final ProcurementRequestMapper procurementRequestMapper;
+    private final ProcurementItemMapper procurementItemMapper;
+    private final UserRepository userRepository;
+    private final Notifier notifier;
 
     // --------------------------------------------------
     // CREATE PROCUREMENT REQUEST
@@ -277,6 +292,14 @@ public class ProcurementRequestServiceImpl
         ProcurementRequest submittedRequest =
                 procurementRequestRepository.save(request);
 
+        String requester = userRepository.findById(currentUserId)
+                .map(user -> user.getFullName() != null && !user.getFullName().isBlank() ? user.getFullName() : user.getUsername())
+                .orElse("a colleague");
+        notifier.notify(Recipients.roles("PROCUREMENT_ADMIN", "ADMIN").except(currentUserId),
+                NotificationType.REQUEST_SUBMITTED, "Request awaiting approval",
+                "\"" + request.getTitle() + "\" was submitted by " + requester + " and is waiting for your decision.",
+                Notifier.PROCUREMENT_REQUEST, request.getId());
+
         return procurementRequestMapper.toResponse(submittedRequest);
     }
 
@@ -318,6 +341,12 @@ public class ProcurementRequestServiceImpl
 
         ProcurementRequest approvedRequest =
                 procurementRequestRepository.save(request);
+
+        notifier.notify(Recipients.users(request.getRequesterId()).except(approverId),
+                NotificationType.REQUEST_APPROVED, "Request approved",
+                "Your request \"" + request.getTitle() + "\" was approved."
+                        + (request.getApprovalComment() == null ? "" : " Comment: " + request.getApprovalComment()),
+                Notifier.PROCUREMENT_REQUEST, request.getId());
 
         return procurementRequestMapper.toResponse(approvedRequest);
     }
@@ -368,6 +397,11 @@ public class ProcurementRequestServiceImpl
 
         ProcurementRequest rejectedRequest =
                 procurementRequestRepository.save(request);
+
+        notifier.notify(Recipients.users(request.getRequesterId()).except(approverId),
+                NotificationType.REQUEST_REJECTED, "Request rejected",
+                "Your request \"" + request.getTitle() + "\" was rejected. Reason: " + request.getRejectionReason(),
+                Notifier.PROCUREMENT_REQUEST, request.getId());
 
         return procurementRequestMapper.toResponse(rejectedRequest);
     }
@@ -454,6 +488,200 @@ public class ProcurementRequestServiceImpl
     }
 
     // ==================================================
+    // LINE ITEM MANAGEMENT
+    // ==================================================
+
+    @Override
+    public ProcurementItemResponse addItem(
+            UUID requestId,
+            ProcurementItemRequest itemRequest,
+            UUID currentUserId,
+            boolean procurementAdmin) {
+
+        ProcurementRequest request = findRequestById(requestId);
+        validateAccess(request, currentUserId, procurementAdmin);
+
+        if (request.getStatus() != ProcurementStatus.DRAFT
+                && request.getStatus() != ProcurementStatus.REJECTED) {
+
+            throw new BadRequestException(
+                    "Items can only be added to draft or rejected requests"
+            );
+        }
+
+        ProcurementItem item = procurementItemMapper.toEntity(itemRequest, request);
+        ProcurementItem savedItem = procurementItemRepository.save(item);
+
+        return procurementItemMapper.toResponse(savedItem);
+    }
+
+    @Override
+    public ProcurementItemResponse updateItem(
+            UUID requestId,
+            UUID itemId,
+            ProcurementItemRequest itemRequest,
+            UUID currentUserId,
+            boolean procurementAdmin) {
+
+        ProcurementRequest request = findRequestById(requestId);
+        validateAccess(request, currentUserId, procurementAdmin);
+
+        if (request.getStatus() != ProcurementStatus.DRAFT
+                && request.getStatus() != ProcurementStatus.REJECTED) {
+
+            throw new BadRequestException(
+                    "Items can only be updated in draft or rejected requests"
+            );
+        }
+
+        ProcurementItem item = findItemByIdAndRequest(itemId, requestId);
+        procurementItemMapper.updateEntity(item, itemRequest);
+        ProcurementItem updatedItem = procurementItemRepository.save(item);
+
+        return procurementItemMapper.toResponse(updatedItem);
+    }
+
+    @Override
+    public void deleteItem(
+            UUID requestId,
+            UUID itemId,
+            UUID currentUserId,
+            boolean procurementAdmin) {
+
+        ProcurementRequest request = findRequestById(requestId);
+        validateAccess(request, currentUserId, procurementAdmin);
+
+        if (request.getStatus() != ProcurementStatus.DRAFT
+                && request.getStatus() != ProcurementStatus.REJECTED) {
+
+            throw new BadRequestException(
+                    "Items can only be deleted from draft or rejected requests"
+            );
+        }
+
+        ProcurementItem item = findItemByIdAndRequest(itemId, requestId);
+        procurementItemRepository.delete(item);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProcurementItemResponse> getItems(
+            UUID requestId,
+            UUID currentUserId,
+            boolean procurementAdmin) {
+
+        ProcurementRequest request = findRequestById(requestId);
+        validateAccess(request, currentUserId, procurementAdmin);
+
+        List<ProcurementItem> items =
+                procurementItemRepository
+                        .findByProcurementRequestIdOrderByCreatedAtAsc(requestId);
+
+        return procurementItemMapper.toResponseList(items);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProcurementItemResponse getItem(
+            UUID requestId,
+            UUID itemId,
+            UUID currentUserId,
+            boolean procurementAdmin) {
+
+        ProcurementRequest request = findRequestById(requestId);
+        validateAccess(request, currentUserId, procurementAdmin);
+
+        ProcurementItem item = findItemByIdAndRequest(itemId, requestId);
+        return procurementItemMapper.toResponse(item);
+    }
+
+    // ==================================================
+    // EXTENDED STATUS TRANSITIONS
+    // ==================================================
+
+    @Override
+    public ProcurementRequestResponse requestQuotations(
+            UUID requestId,
+            UUID currentUserId,
+            boolean procurementAdmin) {
+
+        ProcurementRequest request = findRequestById(requestId);
+        validateAccess(request, currentUserId, procurementAdmin);
+
+        if (request.getStatus() != ProcurementStatus.APPROVED) {
+            throw new BadRequestException(
+                    "Only approved requests can transition to quotation requested"
+            );
+        }
+
+        request.setStatus(ProcurementStatus.QUOTATION_REQUESTED);
+        ProcurementRequest updatedRequest =
+                procurementRequestRepository.save(request);
+
+        String deadline = request.getRequiredBy() == null ? ""
+                : " Needed by " + request.getRequiredBy().format(java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy")) + ".";
+        notifier.notify(Recipients.roles("VENDOR").except(currentUserId),
+                NotificationType.QUOTATIONS_REQUESTED, "New request for quotation",
+                "\"" + request.getTitle() + "\" is open for quotations." + deadline,
+                Notifier.PROCUREMENT_REQUEST, request.getId());
+        notifier.notify(Recipients.users(request.getRequesterId()).except(currentUserId),
+                NotificationType.QUOTATIONS_REQUESTED, "Quotations requested",
+                "Vendors have been invited to quote for your request \"" + request.getTitle() + "\".",
+                Notifier.PROCUREMENT_REQUEST, request.getId());
+
+        return procurementRequestMapper.toResponse(updatedRequest);
+    }
+
+    @Override
+    public ProcurementRequestResponse startEvaluation(
+            UUID requestId,
+            UUID currentUserId,
+            boolean procurementAdmin) {
+
+        ProcurementRequest request = findRequestById(requestId);
+        validateAccess(request, currentUserId, procurementAdmin);
+
+        if (request.getStatus() != ProcurementStatus.QUOTATION_REQUESTED) {
+            throw new BadRequestException(
+                    "Only quotation requested requests can transition to under evaluation"
+            );
+        }
+
+        request.setStatus(ProcurementStatus.UNDER_EVALUATION);
+        ProcurementRequest updatedRequest =
+                procurementRequestRepository.save(request);
+
+        return procurementRequestMapper.toResponse(updatedRequest);
+    }
+
+    @Override
+    public ProcurementRequestResponse completeRequest(
+            UUID requestId,
+            UUID currentUserId,
+            boolean procurementAdmin) {
+
+        ProcurementRequest request = findRequestById(requestId);
+        validateAccess(request, currentUserId, procurementAdmin);
+
+        if (request.getStatus() != ProcurementStatus.UNDER_EVALUATION) {
+            throw new BadRequestException(
+                    "Only under evaluation requests can be completed"
+            );
+        }
+
+        request.setStatus(ProcurementStatus.COMPLETED);
+        ProcurementRequest updatedRequest =
+                procurementRequestRepository.save(request);
+
+        notifier.notify(Recipients.users(request.getRequesterId()).except(currentUserId),
+                NotificationType.REQUEST_COMPLETED, "Request completed",
+                "Your request \"" + request.getTitle() + "\" has been completed.",
+                Notifier.PROCUREMENT_REQUEST, request.getId());
+
+        return procurementRequestMapper.toResponse(updatedRequest);
+    }
+
+    // ==================================================
     // PRIVATE HELPER METHODS
     // ==================================================
 
@@ -468,6 +696,22 @@ public class ProcurementRequestServiceImpl
         return procurementRequestRepository.findById(requestId)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Procurement request not found with ID: " + requestId
+                ));
+    }
+
+    private ProcurementItem findItemByIdAndRequest(UUID itemId, UUID requestId) {
+
+        if (itemId == null) {
+            throw new BadRequestException(
+                    "Item ID is required"
+            );
+        }
+
+        return procurementItemRepository.findById(itemId)
+                .filter(item -> item.getProcurementRequest() != null
+                        && item.getProcurementRequest().getId().equals(requestId))
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Item not found with ID: " + itemId
                 ));
     }
 

@@ -1,0 +1,15 @@
+﻿{
+    "reporting-service":  8091,
+    "approval-service":  8087,
+    "ai-extraction-service":  8090,
+    "validation-service":  8084,
+    "VendorQuotationApplication":  18081,
+    "gateway-service":  8080,
+    "document-service":  8083,
+    "recommendation-service":  8086,
+    "notification-service":  8089,
+    "quotation-service":  8082,
+    "eureka-service":  8761,
+    "comparison-service":  8085,
+    "audit-service":  8088
+}

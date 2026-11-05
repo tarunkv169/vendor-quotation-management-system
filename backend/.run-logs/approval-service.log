@@ -1,0 +1,49 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.1)
+
+2026-11-04T09:39:33.890+05:30  INFO [] 4880 --- [approval-service] [           main] c.v.approval.ApprovalServiceApplication  : Starting ApprovalServiceApplication v0.0.1-SNAPSHOT using Java 21.0.13.0.3 with PID 4880 (C:\Users\hp\Dropbox\My PC (LAPTOP-DQD1CDSC)\Downloads\vendor-quotation-management-system\vendor-quotation-management-system\backend\approval-service\target\approval-service-0.0.1-SNAPSHOT.jar started by hp in C:\Users\hp\Dropbox\My PC (LAPTOP-DQD1CDSC)\Downloads\vendor-quotation-management-system\vendor-quotation-management-system\backend\approval-service)
+2026-11-04T09:39:33.894+05:30  INFO [] 4880 --- [approval-service] [           main] c.v.approval.ApprovalServiceApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-11-04T09:39:36.951+05:30  INFO [] 4880 --- [approval-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-04T09:39:37.201+05:30  INFO [] 4880 --- [approval-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 217 ms. Found 7 JPA repository interfaces.
+2026-11-04T09:39:40.534+05:30  INFO [] 4880 --- [approval-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8087 (http)
+2026-11-04T09:39:40.579+05:30  INFO [] 4880 --- [approval-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-04T09:39:40.580+05:30  INFO [] 4880 --- [approval-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.34]
+2026-11-04T09:39:40.766+05:30  INFO [] 4880 --- [approval-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-11-04T09:39:40.768+05:30  INFO [] 4880 --- [approval-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 6788 ms
+2026-11-04T09:39:42.571+05:30  INFO [] 4880 --- [approval-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-04T09:39:43.672+05:30  INFO [] 4880 --- [approval-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@37caecda
+2026-11-04T09:39:43.676+05:30  INFO [] 4880 --- [approval-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-04T09:39:43.757+05:30  INFO [] 4880 --- [approval-service] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/approval_db (PostgreSQL 18.6)
+2026-11-04T09:39:43.813+05:30  WARN [] 4880 --- [approval-service] [           main] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 18.6 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 17.
+2026-11-04T09:39:44.010+05:30  INFO [] 4880 --- [approval-service] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 3 migrations (execution time 00:00.122s)
+2026-11-04T09:39:44.040+05:30  INFO [] 4880 --- [approval-service] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 3
+2026-11-04T09:39:44.047+05:30  INFO [] 4880 --- [approval-service] [           main] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-11-04T09:39:44.441+05:30  INFO [] 4880 --- [approval-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-11-04T09:39:44.669+05:30  INFO [] 4880 --- [approval-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.4.Final
+2026-11-04T09:39:44.847+05:30  INFO [] 4880 --- [approval-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-11-04T09:39:45.871+05:30  INFO [] 4880 --- [approval-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-04T09:39:46.496+05:30  INFO [] 4880 --- [approval-service] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 18.6
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-04T09:39:51.395+05:30  INFO [] 4880 --- [approval-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-04T09:39:51.552+05:30  INFO [] 4880 --- [approval-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-04T09:39:54.982+05:30  INFO [] 4880 --- [approval-service] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-11-04T09:40:00.419+05:30  INFO [] 4880 --- [approval-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-11-04T09:40:04.923+05:30  INFO [] 4880 --- [approval-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8087 (http) with context path '/'
+2026-11-04T09:40:05.263+05:30  INFO [] 4880 --- [approval-service] [           main] c.v.approval.ApprovalServiceApplication  : Started ApprovalServiceApplication in 32.018 seconds (process running for 32.741)
+2026-11-04T09:44:00.871+05:30  INFO [] 4880 --- [approval-service] [nio-8087-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-04T09:44:00.876+05:30  INFO [] 4880 --- [approval-service] [nio-8087-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-04T09:44:00.895+05:30  INFO [] 4880 --- [approval-service] [nio-8087-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 19 ms
+2026-11-04T12:01:41.120+05:30  WARN [] 4880 --- [approval-service] [l-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=33m54s959ms475µs400ns).

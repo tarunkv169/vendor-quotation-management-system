@@ -1,0 +1,23 @@
+# Local stack for the AI Extraction Service (API + migrations).
+# PostgreSQL / Document Service come from the main VQMS docker-compose.yml
+# (network "vqms-network"). Copy .env.example to .env and fill in secrets first.
+services:
+  ai-extraction-migrate:
+    build: .
+    command: ["alembic", "upgrade", "head"]
+    env_file: .env
+    networks: [vqms-network]
+
+  ai-extraction-api:
+    build: .
+    env_file: .env
+    ports:
+      - "8090:8090"
+    depends_on:
+      ai-extraction-migrate:
+        condition: service_completed_successfully
+    networks: [vqms-network]
+
+networks:
+  vqms-network:
+    external: true

@@ -1,7 +1,9 @@
 
 package com.vqms.controller;
 
+import com.vqms.dto.request.ProcurementItemRequest;
 import com.vqms.dto.request.ProcurementRequestRequest;
+import com.vqms.dto.response.ProcurementItemResponse;
 import com.vqms.dto.response.ProcurementRequestResponse;
 import com.vqms.entity.ProcurementStatus;
 import com.vqms.exception.BadRequestException;
@@ -24,6 +26,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -355,6 +358,191 @@ public class ProcurementRequestController {
 
         ProcurementRequestResponse response =
                 procurementRequestService.cancelRequest(
+                        id,
+                        currentUserId,
+                        admin
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    // ==================================================
+    // ADD LINE ITEM
+    // ==================================================
+
+    @PostMapping("/{id}/items")
+    public ResponseEntity<ProcurementItemResponse> addItem(
+            @PathVariable UUID id,
+            @Valid @RequestBody ProcurementItemRequest itemRequest,
+            Authentication authentication) {
+
+        UUID currentUserId = getCurrentUserId(authentication);
+        boolean admin = isProcurementAdmin(authentication);
+
+        ProcurementItemResponse response =
+                procurementRequestService.addItem(
+                        id,
+                        itemRequest,
+                        currentUserId,
+                        admin
+                );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // ==================================================
+    // GET ALL LINE ITEMS
+    // ==================================================
+
+    @GetMapping("/{id}/items")
+    public ResponseEntity<List<ProcurementItemResponse>> getItems(
+            @PathVariable UUID id,
+            Authentication authentication) {
+
+        UUID currentUserId = getCurrentUserId(authentication);
+        boolean admin = isProcurementAdmin(authentication);
+
+        List<ProcurementItemResponse> items =
+                procurementRequestService.getItems(
+                        id,
+                        currentUserId,
+                        admin
+                );
+
+        return ResponseEntity.ok(items);
+    }
+
+    // ==================================================
+    // GET SINGLE LINE ITEM
+    // ==================================================
+
+    @GetMapping("/{id}/items/{itemId}")
+    public ResponseEntity<ProcurementItemResponse> getItem(
+            @PathVariable UUID id,
+            @PathVariable UUID itemId,
+            Authentication authentication) {
+
+        UUID currentUserId = getCurrentUserId(authentication);
+        boolean admin = isProcurementAdmin(authentication);
+
+        ProcurementItemResponse response =
+                procurementRequestService.getItem(
+                        id,
+                        itemId,
+                        currentUserId,
+                        admin
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    // ==================================================
+    // UPDATE LINE ITEM
+    // ==================================================
+
+    @PutMapping("/{id}/items/{itemId}")
+    public ResponseEntity<ProcurementItemResponse> updateItem(
+            @PathVariable UUID id,
+            @PathVariable UUID itemId,
+            @Valid @RequestBody ProcurementItemRequest itemRequest,
+            Authentication authentication) {
+
+        UUID currentUserId = getCurrentUserId(authentication);
+        boolean admin = isProcurementAdmin(authentication);
+
+        ProcurementItemResponse response =
+                procurementRequestService.updateItem(
+                        id,
+                        itemId,
+                        itemRequest,
+                        currentUserId,
+                        admin
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    // ==================================================
+    // DELETE LINE ITEM
+    // ==================================================
+
+    @DeleteMapping("/{id}/items/{itemId}")
+    public ResponseEntity<Void> deleteItem(
+            @PathVariable UUID id,
+            @PathVariable UUID itemId,
+            Authentication authentication) {
+
+        UUID currentUserId = getCurrentUserId(authentication);
+        boolean admin = isProcurementAdmin(authentication);
+
+        procurementRequestService.deleteItem(
+                id,
+                itemId,
+                currentUserId,
+                admin
+        );
+
+        return ResponseEntity.noContent().build();
+    }
+
+    // ==================================================
+    // REQUEST QUOTATIONS (APPROVED -> QUOTATION_REQUESTED)
+    // ==================================================
+
+    @PatchMapping("/{id}/request-quotations")
+    public ResponseEntity<ProcurementRequestResponse> requestQuotations(
+            @PathVariable UUID id,
+            Authentication authentication) {
+
+        UUID currentUserId = getCurrentUserId(authentication);
+        boolean admin = isProcurementAdmin(authentication);
+
+        ProcurementRequestResponse response =
+                procurementRequestService.requestQuotations(
+                        id,
+                        currentUserId,
+                        admin
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    // ==================================================
+    // START EVALUATION (QUOTATION_REQUESTED -> UNDER_EVALUATION)
+    // ==================================================
+
+    @PatchMapping("/{id}/start-evaluation")
+    public ResponseEntity<ProcurementRequestResponse> startEvaluation(
+            @PathVariable UUID id,
+            Authentication authentication) {
+
+        UUID currentUserId = getCurrentUserId(authentication);
+        boolean admin = isProcurementAdmin(authentication);
+
+        ProcurementRequestResponse response =
+                procurementRequestService.startEvaluation(
+                        id,
+                        currentUserId,
+                        admin
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    // ==================================================
+    // COMPLETE REQUEST (UNDER_EVALUATION -> COMPLETED)
+    // ==================================================
+
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<ProcurementRequestResponse> completeRequest(
+            @PathVariable UUID id,
+            Authentication authentication) {
+
+        UUID currentUserId = getCurrentUserId(authentication);
+        boolean admin = isProcurementAdmin(authentication);
+
+        ProcurementRequestResponse response =
+                procurementRequestService.completeRequest(
                         id,
                         currentUserId,
                         admin

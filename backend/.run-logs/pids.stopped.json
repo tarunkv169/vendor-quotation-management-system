@@ -1,0 +1,12 @@
+﻿{
+    "notification-service":  24024,
+    "eureka-service":  1488,
+    "approval-service":  11560,
+    "recommendation-service":  17024,
+    "reporting-service":  12756,
+    "document-service":  24728,
+    "validation-service":  21724,
+    "ai-extraction-service":  26500,
+    "quotation-service":  9900,
+    "comparison-service":  29692
+}

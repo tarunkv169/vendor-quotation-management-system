@@ -154,6 +154,21 @@ public class GlobalExceptionHandler {
     // INTERNAL SERVER ERROR
     // ==========================================
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNoResource(Exception exception) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Resource not found", null);
+    }
+
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiErrorResponse> handleTypeMismatch(Exception exception) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid value in request path or parameters", null);
+    }
+
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiErrorResponse> handleMethodNotSupported(Exception exception) {
+        return buildErrorResponse(HttpStatus.METHOD_NOT_ALLOWED, "HTTP method not supported for this path", null);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGlobalException(
             Exception exception) {

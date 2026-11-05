@@ -1,0 +1,14 @@
+# VQMS - start the whole platform from the project root.
+#
+# The full stack (PostgreSQL, Eureka, all services, gateway and UI) is defined in
+# backend/docker-compose/default/docker-compose.yml; its settings come from the .env file in that folder.
+#
+#   docker compose up -d --build      # build all images and start everything
+#   docker compose ps                 # status
+#   docker compose down               # stop
+#
+# UI http://localhost:3000   API Gateway http://localhost:8080   Eureka http://localhost:8761
+include:
+  - path: backend/docker-compose/default/docker-compose.yml
+    project_directory: backend/docker-compose/default
+    env_file: backend/docker-compose/default/.env

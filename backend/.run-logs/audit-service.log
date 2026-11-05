@@ -1,0 +1,108 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.1)
+
+2026-11-04T09:40:08.270+05:30  INFO [] 13324 --- [audit-service] [           main] com.vqms.audit.AuditServiceApplication   : Starting AuditServiceApplication v0.0.1-SNAPSHOT using Java 21.0.13.0.3 with PID 13324 (C:\Users\hp\Dropbox\My PC (LAPTOP-DQD1CDSC)\Downloads\vendor-quotation-management-system\vendor-quotation-management-system\backend\audit-service\target\audit-service-0.0.1-SNAPSHOT.jar started by hp in C:\Users\hp\Dropbox\My PC (LAPTOP-DQD1CDSC)\Downloads\vendor-quotation-management-system\vendor-quotation-management-system\backend\audit-service)
+2026-11-04T09:40:08.272+05:30  INFO [] 13324 --- [audit-service] [           main] com.vqms.audit.AuditServiceApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-11-04T09:40:13.192+05:30  INFO [] 13324 --- [audit-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-04T09:40:14.300+05:30  INFO [] 13324 --- [audit-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 1061 ms. Found 4 JPA repository interfaces.
+2026-11-04T09:40:15.747+05:30  INFO [] 13324 --- [audit-service] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=ac349e36-f465-31b6-858c-1e738d5e92cb
+2026-11-04T09:40:19.826+05:30  INFO [] 13324 --- [audit-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8088 (http)
+2026-11-04T09:40:19.903+05:30  INFO [] 13324 --- [audit-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-04T09:40:19.904+05:30  INFO [] 13324 --- [audit-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.34]
+2026-11-04T09:40:20.132+05:30  INFO [] 13324 --- [audit-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-11-04T09:40:20.134+05:30  INFO [] 13324 --- [audit-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 11782 ms
+2026-11-04T09:40:22.888+05:30  INFO [] 13324 --- [audit-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-04T09:40:23.752+05:30  INFO [] 13324 --- [audit-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@595184d8
+2026-11-04T09:40:23.765+05:30  INFO [] 13324 --- [audit-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-04T09:40:24.079+05:30  INFO [] 13324 --- [audit-service] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/audit_db (PostgreSQL 18.6)
+2026-11-04T09:40:24.192+05:30  WARN [] 13324 --- [audit-service] [           main] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: PostgreSQL 18.6 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 17.
+2026-11-04T09:40:24.475+05:30  INFO [] 13324 --- [audit-service] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 2 migrations (execution time 00:00.161s)
+2026-11-04T09:40:24.513+05:30  INFO [] 13324 --- [audit-service] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 2
+2026-11-04T09:40:24.519+05:30  INFO [] 13324 --- [audit-service] [           main] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-11-04T09:40:25.156+05:30  INFO [] 13324 --- [audit-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-11-04T09:40:25.468+05:30  INFO [] 13324 --- [audit-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.4.Final
+2026-11-04T09:40:25.651+05:30  INFO [] 13324 --- [audit-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-11-04T09:40:26.931+05:30  INFO [] 13324 --- [audit-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-04T09:40:27.268+05:30  INFO [] 13324 --- [audit-service] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 18.6
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-04T09:40:30.395+05:30  INFO [] 13324 --- [audit-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-04T09:40:30.534+05:30  INFO [] 13324 --- [audit-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-04T09:40:33.088+05:30  INFO [] 13324 --- [audit-service] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-11-04T09:40:37.520+05:30  INFO [] 13324 --- [audit-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-11-04T09:40:40.710+05:30  INFO [] 13324 --- [audit-service] [           main] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestTemplate.
+2026-11-04T09:40:40.957+05:30  WARN [] 13324 --- [audit-service] [           main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-11-04T09:40:41.176+05:30  INFO [] 13324 --- [audit-service] [           main] o.s.c.n.eureka.InstanceInfoFactory       : Setting initial instance status as: STARTING
+2026-11-04T09:40:41.319+05:30  INFO [] 13324 --- [audit-service] [           main] com.netflix.discovery.DiscoveryClient    : Initializing Eureka in region us-east-1
+2026-11-04T09:40:41.335+05:30  INFO [] 13324 --- [audit-service] [           main] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T09:40:41.367+05:30  INFO [] 13324 --- [audit-service] [           main] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
+2026-11-04T09:40:41.368+05:30  INFO [] 13324 --- [audit-service] [           main] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
+2026-11-04T09:40:41.368+05:30  INFO [] 13324 --- [audit-service] [           main] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
+2026-11-04T09:40:41.368+05:30  INFO [] 13324 --- [audit-service] [           main] com.netflix.discovery.DiscoveryClient    : Application is null : false
+2026-11-04T09:40:41.369+05:30  INFO [] 13324 --- [audit-service] [           main] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
+2026-11-04T09:40:41.369+05:30  INFO [] 13324 --- [audit-service] [           main] com.netflix.discovery.DiscoveryClient    : Application version is -1: true
+2026-11-04T09:40:41.369+05:30  INFO [] 13324 --- [audit-service] [           main] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
+2026-11-04T09:40:44.285+05:30  INFO [] 13324 --- [audit-service] [           main] com.netflix.discovery.DiscoveryClient    : The response status is 200
+2026-11-04T09:40:44.290+05:30  INFO [] 13324 --- [audit-service] [           main] com.netflix.discovery.DiscoveryClient    : Starting heartbeat executor: renew interval is: 30
+2026-11-04T09:40:44.296+05:30  INFO [] 13324 --- [audit-service] [           main] c.n.discovery.InstanceInfoReplicator     : InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-11-04T09:40:44.303+05:30  INFO [] 13324 --- [audit-service] [           main] com.netflix.discovery.DiscoveryClient    : Discovery Client initialized at timestamp 1793765444299 with initial instances count: 0
+2026-11-04T09:40:44.328+05:30  INFO [] 13324 --- [audit-service] [           main] o.s.c.n.e.s.EurekaServiceRegistry        : Registering application AUDIT-SERVICE with eureka with status UP
+2026-11-04T09:40:44.330+05:30  INFO [] 13324 --- [audit-service] [           main] com.netflix.discovery.DiscoveryClient    : Saw local status change event StatusChangeEvent [timestamp=1793765444330, current=UP, previous=STARTING]
+2026-11-04T09:40:44.335+05:30  INFO [] 13324 --- [audit-service] [foReplicator-%d] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_AUDIT-SERVICE/LAPTOP-DQD1CDSC:audit-service:8088: registering service...
+2026-11-04T09:40:44.404+05:30  INFO [] 13324 --- [audit-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8088 (http) with context path '/'
+2026-11-04T09:40:44.406+05:30  INFO [] 13324 --- [audit-service] [           main] .s.c.n.e.s.EurekaAutoServiceRegistration : Updating port to 8088
+2026-11-04T09:40:44.450+05:30  INFO [] 13324 --- [audit-service] [           main] com.vqms.audit.AuditServiceApplication   : Started AuditServiceApplication in 36.939 seconds (process running for 37.737)
+2026-11-04T09:40:45.063+05:30  INFO [] 13324 --- [audit-service] [foReplicator-%d] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_AUDIT-SERVICE/LAPTOP-DQD1CDSC:audit-service:8088 - registration status: 204
+2026-11-04T09:41:14.304+05:30  INFO [] 13324 --- [audit-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
+2026-11-04T09:41:14.304+05:30  INFO [] 13324 --- [audit-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
+2026-11-04T09:41:14.304+05:30  INFO [] 13324 --- [audit-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
+2026-11-04T09:41:14.304+05:30  INFO [] 13324 --- [audit-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : Application is null : false
+2026-11-04T09:41:14.304+05:30  INFO [] 13324 --- [audit-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
+2026-11-04T09:41:14.304+05:30  INFO [] 13324 --- [audit-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : Application version is -1: false
+2026-11-04T09:41:14.304+05:30  INFO [] 13324 --- [audit-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
+2026-11-04T09:41:14.353+05:30  INFO [] 13324 --- [audit-service] [reshExecutor-%d] com.netflix.discovery.DiscoveryClient    : The response status is 200
+2026-11-04T09:44:02.912+05:30  INFO [] 13324 --- [audit-service] [nio-8088-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-04T09:44:02.913+05:30  INFO [] 13324 --- [audit-service] [nio-8088-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-04T09:44:02.917+05:30  INFO [] 13324 --- [audit-service] [nio-8088-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-11-04T09:45:41.394+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T09:50:41.407+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T09:55:41.445+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:00:41.512+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:05:41.567+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:10:41.593+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:15:41.620+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:20:41.663+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:25:41.751+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:30:41.764+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:35:41.782+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:40:41.810+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:45:41.841+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:50:41.875+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T10:55:41.921+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T11:00:41.975+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T11:05:42.035+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T11:10:42.054+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T11:15:42.075+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T11:20:42.095+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T11:25:42.117+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T11:44:24.602+05:30  WARN [] 13324 --- [audit-service] [l-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=16m58s506ms752µs300ns).
+2026-11-04T12:01:51.163+05:30  WARN [] 13324 --- [audit-service] [l-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=17m26s592ms959µs400ns).
+2026-11-04T12:04:07.103+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T12:09:07.132+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T12:14:07.157+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T12:19:07.176+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T12:24:07.213+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T12:29:07.255+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-11-04T12:34:07.285+05:30  INFO [] 13324 --- [audit-service] [rap-executor-%d] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
