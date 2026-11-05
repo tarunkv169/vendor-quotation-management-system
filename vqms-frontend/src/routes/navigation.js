@@ -1,7 +1,6 @@
 import {
   BadgeCheck,
   Bell,
-  Building,
   ChartColumn,
   ClipboardList,
   FileText,
@@ -13,6 +12,7 @@ import {
   ScrollText,
   Settings,
   ShieldCheck,
+  Users,
 } from 'lucide-react';
 
 // Sidebar entries; `module` is checked against MODULE_ACCESS in utils/permissions.js.
@@ -27,7 +27,7 @@ export const NAV_SECTIONS = [
     label: 'Sourcing',
     items: [
       { to: '/procurement', label: 'Procurement', icon: ClipboardList, module: 'procurement' },
-      { to: '/vendors', label: 'Vendors', icon: Building, module: 'vendors' },
+      { to: '/vendors', label: 'Vendors', icon: Users, module: 'vendors' },
       { to: '/quotations', label: 'Quotations', icon: FileText, module: 'quotations' },
       { to: '/documents', label: 'Documents', icon: FolderOpen, module: 'documents' },
     ],

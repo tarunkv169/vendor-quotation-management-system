@@ -16,14 +16,16 @@ import { ErrorState } from '@/components/common/EmptyState';
 import { formatDateTime } from '@/utils/formatDate';
 import { formatFileSize } from '@/utils/formatCurrency';
 import { humanize } from '@/utils/constants';
-import { FEATURES, FEATURE_MESSAGES } from '@/utils/features';
+import { FEATURE_MESSAGES } from '@/utils/features';
+import { useDocumentStorage } from '@/hooks/useDocumentStorage';
 import { extractionKeys, extractionService } from '@/features/extraction/extractionService';
 import { documentKeys, documentService, openDocumentDownload } from '../documentService';
+import { documentPermissions } from '../documentActions';
 
-const EXTRACTABLE = ['QUOTATION_PDF', 'QUOTATION_EXCEL'];
 
 export default function DocumentDetailPage() {
   const { id } = useParams();
+  const storageEnabled = useDocumentStorage();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { can, canAccess } = useAuth();
@@ -56,9 +58,7 @@ export default function DocumentDetailPage() {
   if (document.isLoading) return <DetailSkeleton />;
   if (document.error) return <ErrorState error={document.error} onRetry={document.refetch} />;
   const data = document.data;
-  const downloadable = FEATURES.documentStorage && ['ACTIVE', 'PROCESSING', 'PROCESSED'].includes(data.documentStatus);
-
-  const extractable = FEATURES.aiExtraction && can('extraction.start') && EXTRACTABLE.includes(data.documentType) && downloadable;
+  const { canDownload: downloadable, canExtract: extractable, canDelete } = documentPermissions(data, can);
 
   return (
     <>
@@ -95,7 +95,7 @@ export default function DocumentDetailPage() {
                 Download
               </Button>
             )}
-            {can('document.upload') && data.documentStatus !== 'DELETED' && (
+            {canDelete && (
               <Button variant="ghost" icon={Trash} onClick={() => setConfirmDelete(true)}>
                 Delete
               </Button>
@@ -103,7 +103,7 @@ export default function DocumentDetailPage() {
           </>
         }
       >
-        {!FEATURES.documentStorage && <Alert tone="info">{FEATURE_MESSAGES.documentStorage}</Alert>}
+        {!storageEnabled && <Alert tone="info">{FEATURE_MESSAGES.documentStorage}</Alert>}
         {data.failureReason && <Alert tone="error" title="Failure reason">{data.failureReason}</Alert>}
       </DetailHeader>
 

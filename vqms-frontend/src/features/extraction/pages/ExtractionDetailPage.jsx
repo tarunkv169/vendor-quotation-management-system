@@ -15,7 +15,8 @@ import { ErrorState } from '@/components/common/EmptyState';
 import { formatDateTime } from '@/utils/formatDate';
 import { formatNumber } from '@/utils/formatCurrency';
 import { humanize } from '@/utils/constants';
-import { FEATURES, FEATURE_MESSAGES } from '@/utils/features';
+import { reportExtractionError } from '@/utils/features';
+import { useAiExtraction } from '@/hooks/useAiExtraction';
 import { validationService } from '@/features/validation/validationService';
 import { extractionKeys, extractionService, EXTRACTION_ACTIVE } from '../extractionService';
 
@@ -39,6 +40,7 @@ export default function ExtractionDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { can } = useAuth();
+  const aiEnabled = useAiExtraction();
 
   const extraction = useQuery({
     queryKey: extractionKeys.one(id),
@@ -54,6 +56,7 @@ export default function ExtractionDetailPage() {
       queryClient.invalidateQueries({ queryKey: extractionKeys.all });
       if (accepted.extractionId !== id) navigate(`/extraction/${accepted.extractionId}`);
     },
+    onError: (error) => reportExtractionError(error),
   });
   const validate = useMutation({
     mutationFn: () => validationService.run({ quotationId: extraction.data.quotationId, extractionId: id, documentId: extraction.data.documentId }),
@@ -105,7 +108,7 @@ export default function ExtractionDetailPage() {
                 Validate quotation
               </Button>
             )}
-            {FEATURES.aiExtraction && ['FAILED', 'NEEDS_REVIEW'].includes(data.status) && can('extraction.start') && (
+            {aiEnabled && ['FAILED', 'NEEDS_REVIEW'].includes(data.status) && can('extraction.start') && (
               <Button variant="secondary" icon={RefreshCw} onClick={() => retry.mutate()} loading={retry.isPending}>
                 Retry
               </Button>

@@ -7,6 +7,7 @@ import { notificationKeys, notificationService } from '@/features/notifications/
 import { approvalKeys, approvalService } from '@/features/approval/approvalService';
 import { cn } from '@/utils/cn';
 import { APP_NAME } from '@/utils/constants';
+import UserMenu from './UserMenu';
 
 function Logo({ collapsed }) {
   return (
@@ -120,6 +121,9 @@ export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
           <Logo collapsed={collapsed} />
         </div>
         {nav(false)}
+        <div className={cn('shrink-0 border-t border-sidebar-line py-3', collapsed ? 'px-2.5' : 'px-3')}>
+          <UserMenu variant="sidebar" compact={collapsed} />
+        </div>
       </aside>
 
       {mobileOpen && (
@@ -133,6 +137,9 @@ export default function Sidebar({ collapsed, mobileOpen, onCloseMobile }) {
               </button>
             </div>
             {nav(true)}
+            <div className="shrink-0 border-t border-sidebar-line px-3 py-3">
+              <UserMenu variant="sidebar" />
+            </div>
           </aside>
         </div>
       )}

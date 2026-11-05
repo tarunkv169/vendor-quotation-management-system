@@ -5,13 +5,17 @@ import { useAuth } from '@/hooks/useAuth';
 import { ROLE_LABELS } from '@/utils/permissions';
 import { cn } from '@/utils/cn';
 
-export function Avatar({ name, solid = false, className }) {
+export function Avatar({ name, solid = false, onSidebar = false, className }) {
   const initials = (name || '?').slice(0, 2).toUpperCase();
   return (
     <span
       className={cn(
         'flex shrink-0 items-center justify-center rounded-full font-semibold',
-        solid ? 'h-9 w-9 bg-sidebar text-xs text-sidebar-strong ring-1 ring-line' : 'h-8 w-8 border border-line bg-surface text-2xs text-slate-700',
+        solid
+          ? 'h-9 w-9 bg-sidebar text-xs text-sidebar-strong ring-1 ring-line'
+          : onSidebar
+            ? 'h-9 w-9 bg-sidebar-active text-xs text-sidebar-strong ring-1 ring-sidebar-line'
+            : 'h-8 w-8 border border-line bg-surface text-2xs text-slate-700',
         className,
       )}
       aria-hidden="true"
@@ -63,14 +67,14 @@ export default function UserMenu({ variant = 'sidebar', compact = false }) {
         aria-expanded={open}
         aria-label={compact ? `Account: ${user?.username}` : undefined}
       >
-        <Avatar name={user?.username} solid={!sidebar} />
+        <Avatar name={user?.username} solid={!sidebar} onSidebar={sidebar} />
         {sidebar && !compact && (
           <>
             <span className="min-w-0 flex-1 leading-tight">
-              <span className="block truncate text-13 font-medium text-slate-900">{user?.username}</span>
-              <span className="block truncate text-xs text-slate-500">{roleLabel}</span>
+              <span className="block truncate text-13 font-semibold text-sidebar-strong">{user?.username}</span>
+              <span className="block truncate text-xs text-sidebar-muted">{roleLabel}</span>
             </span>
-            <ChevronsUpDown className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+            <ChevronsUpDown className="h-4 w-4 shrink-0 text-sidebar-muted" aria-hidden="true" />
           </>
         )}
         {!sidebar && (

@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 /*
-  Design tokens: charcoal + orange theme.
-  - Frame / sidebar: deep charcoal. Working area: one slightly lighter charcoal surface.
+  Design tokens: navy sidebar + indigo accent.
+  - Sidebar: deep navy. Accent: indigo. Dark working area: charcoal surfaces.
     Cards, panel bodies, inputs and menus sit one step lighter again ("surface").
-  - One accent (orange) for primary actions, links, focus and the active state only.
+  - One accent (indigo) for primary actions, links, focus and the active state only.
   - Status colours appear only in badges, step indicators and data marks, never as decoration.
 
   The `slate` scale is redefined as an inverted neutral (50 = darkest tint, 900 = near white), and the
@@ -28,14 +28,14 @@
   --color-slate-800: #e9e9e9;
   --color-slate-900: #f7f7f7;
 
-  /* Accent: orange */
-  --color-brand-50: #3f2c20;
-  --color-brand-100: #523221;
-  --color-brand-200: #7a4423;
-  --color-brand-500: #ff7f36;
-  --color-brand-600: #f26a1b;
-  --color-brand-700: #ff8b4c;
-  --color-brand-800: #ffa775;
+  /* Accent: indigo */
+  --color-brand-50: #272b4f;
+  --color-brand-100: #30366a;
+  --color-brand-200: #3f4691;
+  --color-brand-500: #7c83f7;
+  --color-brand-600: #5b5ff0;
+  --color-brand-700: #a5abff;
+  --color-brand-800: #c7cbff;
 
   /* Status hues re-tinted for dark surfaces (tint backgrounds, readable light text) */
   --color-red-50: #432a2a;
@@ -74,13 +74,13 @@
   --color-line: #474747;
   --color-line-strong: #5a5a5a;
 
-  --color-sidebar: #1f1f1f;
-  --color-sidebar-hover: #2c2c2c;
-  --color-sidebar-active: #383838;
-  --color-sidebar-text: #c4c4c4;
-  --color-sidebar-muted: #7f7f7f;
+  --color-sidebar: #0f1533;
+  --color-sidebar-hover: #1b2350;
+  --color-sidebar-active: #232c63;
+  --color-sidebar-text: #c3c8e6;
+  --color-sidebar-muted: #8188b3;
   --color-sidebar-strong: #ffffff;
-  --color-sidebar-line: #333333;
+  --color-sidebar-line: #1f2852;
 
   --radius-panel: 0.5rem;
 
@@ -109,13 +109,13 @@
   --color-slate-800: #262625;
   --color-slate-900: #171717;
 
-  --color-brand-50: #fff4ed;
-  --color-brand-100: #ffe4d1;
-  --color-brand-200: #fec7a4;
-  --color-brand-500: #f97316;
-  --color-brand-600: #f26a1b;
-  --color-brand-700: #c2410c;
-  --color-brand-800: #9a3412;
+  --color-brand-50: #eef0ff;
+  --color-brand-100: #e0e4ff;
+  --color-brand-200: #c5cbff;
+  --color-brand-500: #5b63f5;
+  --color-brand-600: #4146e5;
+  --color-brand-700: #3436c4;
+  --color-brand-800: #2b2d9c;
 
   /* Status hues back to their standard light values */
   --color-red-50: #fef2f2;
@@ -146,8 +146,8 @@
   --color-warning: #d97706;
   --color-danger: #dc2626;
 
-  --color-frame: #f8f7f3;
-  --color-workspace: #f6f6f4;
+  --color-frame: #f5f6fb;
+  --color-workspace: #f5f6fb;
   --color-surface: #ffffff;
   --color-canvas: #f4f4f2;
   --color-field: #ffffff;
@@ -155,13 +155,13 @@
   --color-line-strong: #d6d5d1;
 
   /* The sidebar stays dark in the light theme too. */
-  --color-sidebar: #1c1c1c;
-  --color-sidebar-hover: #2a2a2a;
-  --color-sidebar-active: #333333;
-  --color-sidebar-text: #c2c2c2;
-  --color-sidebar-muted: #7d7d7d;
+  --color-sidebar: #141c48;
+  --color-sidebar-hover: #1f2860;
+  --color-sidebar-active: #273274;
+  --color-sidebar-text: #c9cdea;
+  --color-sidebar-muted: #8d93bd;
   --color-sidebar-strong: #ffffff;
-  --color-sidebar-line: #2e2e2e;
+  --color-sidebar-line: #232c62;
 }
 
 @layer base {

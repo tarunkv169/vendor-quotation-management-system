@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, ArrowRight, BadgeCheck, Lightbulb, RefreshCw, Send } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BadgeCheck, Clock, RefreshCw, Send } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useVendorNames } from '@/hooks/useVendorNames';
 import { useRequestTitles } from '@/hooks/useLookups';
@@ -11,60 +11,21 @@ import { ScoreBar } from '@/components/common/ScoreBars';
 import Button from '@/components/common/Button';
 import DataTable from '@/components/common/DataTable';
 import StatusBadge from '@/components/common/StatusBadge';
-import Modal from '@/components/common/Modal';
-import { Textarea } from '@/components/common/Input';
 import Alert from '@/components/common/Alert';
 import { DetailSkeleton } from '@/components/common/Skeleton';
 import { ErrorState } from '@/components/common/EmptyState';
 import { formatDate, formatDateTime } from '@/utils/formatDate';
 import { formatCurrency, formatNumber } from '@/utils/formatCurrency';
 import { humanize } from '@/utils/constants';
+import { normalizePage } from '@/utils/pagination';
 import { approvalKeys, approvalService } from '@/features/approval/approvalService';
 import { recommendationKeys, recommendationService } from '../recommendationService';
+import { APPROVAL_STAGES, approvalStage, latestApprovalByRecommendation, recommendationPermissions } from '../recommendationActions';
+import SubmitForApprovalDialog from '../components/SubmitForApprovalDialog';
 
-function SubmitDialog({ open, onClose, requiresReview, reviewReasons, onSubmit, loading }) {
-  const [comment, setComment] = useState('');
-  const [acknowledged, setAcknowledged] = useState(false);
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Submit for approval"
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose} disabled={loading}>
-            Cancel
-          </Button>
-          <Button onClick={() => onSubmit({ comment: comment.trim() || undefined, reviewAcknowledged: acknowledged })} disabled={requiresReview && !acknowledged} loading={loading}>
-            Submit
-          </Button>
-        </>
-      }
-    >
-      <div className="space-y-4">
-        {requiresReview && (
-          <Alert tone="warning" title="This recommendation needs review">
-            <ul className="list-disc pl-4">
-              {(reviewReasons || []).map((reason) => (
-                <li key={reason}>{reason}</li>
-              ))}
-            </ul>
-          </Alert>
-        )}
-        <Textarea label="Comment" maxLength={1000} value={comment} onChange={(event) => setComment(event.target.value)} />
-        {requiresReview && (
-          <label className="flex items-start gap-2 text-sm text-slate-700">
-            <input type="checkbox" checked={acknowledged} onChange={(event) => setAcknowledged(event.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300" />I reviewed the flagged points and still want to submit.
-          </label>
-        )}
-      </div>
-    </Modal>
-  );
-}
-
-
-function recommendationSteps(data) {
+function recommendationSteps(data, approval) {
   const at = (value) => (value ? formatDate(value) : undefined);
+  const stage = approvalStage(data, approval);
   const superseded = data.status === 'SUPERSEDED';
   const submitted = data.status === 'SUBMITTED_FOR_APPROVAL' || Boolean(data.submittedAt);
   return [
@@ -78,6 +39,15 @@ function recommendationSteps(data) {
     superseded
       ? { key: 'superseded', label: 'Superseded', state: 'rejected' }
       : { key: 'submitted', label: 'Submitted for approval', meta: at(data.submittedAt), state: submitted ? 'done' : 'upcoming' },
+    ...(superseded
+      ? []
+      : [
+          stage === 'APPROVED'
+            ? { key: 'decision', label: 'Approved', meta: at(approval.decidedAt), state: 'done' }
+            : stage === 'REJECTED' || stage === 'CANCELLED'
+              ? { key: 'decision', label: APPROVAL_STAGES[stage].label, meta: at(approval.decidedAt), state: 'rejected' }
+              : { key: 'decision', label: 'Approval decision', meta: approval ? humanize(approval.status) : undefined, state: submitted ? 'current' : 'upcoming' },
+        ]),
   ];
 }
 
@@ -85,7 +55,7 @@ export default function RecommendationDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { can } = useAuth();
+  const { can, canAccess, user } = useAuth();
   const vendorName = useVendorNames();
   const requestTitle = useRequestTitles();
   const [submitOpen, setSubmitOpen] = useState(false);
@@ -93,6 +63,21 @@ export default function RecommendationDetailPage() {
   const recommendation = useQuery({ queryKey: recommendationKeys.one(id), queryFn: ({ signal }) => recommendationService.get(id, signal) });
   const ranking = useQuery({ queryKey: recommendationKeys.ranking(id), queryFn: ({ signal }) => recommendationService.ranking(id, signal) });
   const explanation = useQuery({ queryKey: recommendationKeys.explanation(id), queryFn: ({ signal }) => recommendationService.explanation(id, signal) });
+  // Approval workflow for this recommendation (the approval list is filtered by request, then matched by id).
+  const requestOfRecommendation = recommendation.data?.procurementRequestId;
+  const showApproval = canAccess('approvals') && recommendation.data?.status === 'SUBMITTED_FOR_APPROVAL';
+  const approvals = useQuery({
+    queryKey: approvalKeys.list({ procurementRequestId: requestOfRecommendation, size: 100 }),
+    queryFn: ({ signal }) => approvalService.search({ procurementRequestId: requestOfRecommendation, size: 100, sortBy: 'createdAt', direction: 'desc' }, signal),
+    enabled: Boolean(showApproval && requestOfRecommendation),
+  });
+  const approvalRows = approvals.data ? normalizePage(approvals.data).items : [];
+  const approval = latestApprovalByRecommendation(approvalRows.filter((row) => row.recommendationId === id)).get(id);
+  const approvalHistory = useQuery({
+    queryKey: approvalKeys.history(approval?.id),
+    queryFn: ({ signal }) => approvalService.history(approval.id, signal),
+    enabled: Boolean(approval?.id),
+  });
 
   const regenerate = useMutation({
     mutationFn: () => recommendationService.regenerate(id),
@@ -128,7 +113,7 @@ export default function RecommendationDetailPage() {
   const primary = rankingRows.find((row) => row.role === 'PRIMARY');
   const alternatives = rankingRows.filter((row) => row.role === 'ALTERNATIVE');
   const criteria = Object.keys(data.criteriaWeights || {});
-  const submittable = ['GENERATED', 'NEEDS_REVIEW'].includes(data.status);
+  const permissions = recommendationPermissions(data, can);
   const title = requestTitle(data.procurementRequestId);
   const vendorOfQuotation = new Map(rankingRows.map((row) => [row.quotationId, row.vendorId]));
   // "Strongest criteria": the recommended vendor's highest criterion scores as returned by the backend.
@@ -155,6 +140,7 @@ export default function RecommendationDetailPage() {
                 </h1>
                 <StatusBadge status={data.status} />
                 <StatusBadge status={data.type} />
+                {approval && ['APPROVED', 'REJECTED', 'CANCELLED'].includes(approval.status) && <StatusBadge status={approval.status} label={APPROVAL_STAGES[approval.status].label} />}
               </div>
               <p className="mt-1 text-13 text-slate-500">
                 <span className="font-mono text-xs">{data.recommendationNumber}</span>
@@ -185,7 +171,7 @@ export default function RecommendationDetailPage() {
           </div>
         </div>
 
-        <StepTimeline className="mt-5" steps={recommendationSteps(data)} label="Recommendation progress" />
+        <StepTimeline className="mt-5" steps={recommendationSteps(data, approval)} label="Recommendation progress" />
 
         {data.status === 'SUPERSEDED' && (
           <Alert tone="info" className="mt-4">
@@ -204,17 +190,17 @@ export default function RecommendationDetailPage() {
 
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-3">
           <div className="flex flex-wrap items-center gap-2">
-            {can('recommendation.generate') && data.status !== 'SUPERSEDED' && (
+            {permissions.canRegenerate && (
               <Button variant="secondary" icon={RefreshCw} onClick={() => regenerate.mutate()} loading={regenerate.isPending}>
                 Regenerate
               </Button>
             )}
-            {can('recommendation.submit') && submittable && data.recommendedQuotationId && (
+            {permissions.canSubmit && (
               <Button icon={Send} onClick={() => setSubmitOpen(true)}>
                 Submit for approval
               </Button>
             )}
-            {can('approval.create') && data.status === 'SUBMITTED_FOR_APPROVAL' && (
+            {permissions.canStartApproval && !approvals.isLoading && (!approval || approval.status === 'CANCELLED') && (
               <Button icon={BadgeCheck} onClick={() => startApproval.mutate()} loading={startApproval.isPending}>
                 Start approval
               </Button>
@@ -289,6 +275,78 @@ export default function RecommendationDetailPage() {
         </SummaryPanel>
       </div>
 
+      {showApproval && (
+        <SummaryPanel
+          className="mt-4"
+          title="Approval"
+          loading={approvals.isLoading}
+          error={approvals.error}
+          onRetry={approvals.refetch}
+          footer={
+            approval ? (
+              <Link to={`/approvals/${approval.id}`} className="inline-flex items-center gap-1 font-medium text-brand-700 hover:text-brand-800">
+                Open approval {approval.approvalNumber} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </Link>
+            ) : undefined
+          }
+        >
+          {approval ? (
+            <div className="grid gap-5 md:grid-cols-3">
+              <dl className="space-y-2 text-13">
+                <div className="flex justify-between gap-3">
+                  <dt className="text-slate-500">Status</dt>
+                  <dd>
+                    <StatusBadge status={approval.status} />
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-slate-500">Started</dt>
+                  <dd className="text-slate-900">{formatDateTime(approval.createdAt)}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-slate-500">Decided</dt>
+                  <dd className="text-slate-900">{approval.decidedAt ? formatDateTime(approval.decidedAt) : '—'}</dd>
+                </div>
+                {approval.finalComment && (
+                  <div className="border-t border-line pt-2">
+                    <dt className="text-slate-500">Final comment</dt>
+                    <dd className="mt-0.5 text-slate-800">{approval.finalComment}</dd>
+                  </div>
+                )}
+              </dl>
+              <div className="md:col-span-2">
+                <p className="text-xs font-medium text-slate-500">History</p>
+                {approvalHistory.isLoading ? (
+                  <p className="mt-2 text-13 text-slate-500">Loading history…</p>
+                ) : approvalHistory.error ? (
+                  <p className="mt-2 text-13 text-slate-500">The approval history could not be loaded.</p>
+                ) : (approvalHistory.data || []).length ? (
+                  <ol className="mt-2 space-y-2">
+                    {approvalHistory.data.map((event) => (
+                      <li key={event.id} className="flex flex-wrap items-start gap-x-3 gap-y-1 rounded-lg border border-line px-3 py-2 text-13">
+                        <StatusBadge status={event.action} />
+                        <span className="text-slate-500">
+                          {formatDateTime(event.occurredAt)}
+                          {event.actorId && event.actorId === user?.userId && ' · by you'}
+                        </span>
+                        {event.comment && <p className="w-full text-slate-700">{event.comment}</p>}
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p className="mt-2 text-13 text-slate-500">No decisions recorded yet.</p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-3 text-13 text-slate-600">
+              <Clock className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+              <p>Submitted for approval. {permissions.canStartApproval ? 'Start the approval workflow to route it to approvers.' : 'No approval workflow is visible to your account yet.'}</p>
+            </div>
+          )}
+        </SummaryPanel>
+      )}
+
       <SummaryPanel className="mt-4" title="Explanation" loading={explanation.isLoading} error={explanation.error} onRetry={explanation.refetch}>
         {explanation.data && (
           <div className="space-y-4">
@@ -357,7 +415,8 @@ export default function RecommendationDetailPage() {
         />
       </SummaryPanel>
 
-      <SubmitDialog
+      <SubmitForApprovalDialog
+        key={data.id}
         open={submitOpen}
         onClose={() => setSubmitOpen(false)}
         requiresReview={data.requiresReview}

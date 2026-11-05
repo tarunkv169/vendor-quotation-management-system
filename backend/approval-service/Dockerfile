@@ -8,7 +8,7 @@ RUN sed -i 's/\r$//' mvnw .mvn/wrapper/maven-wrapper.properties && chmod +x mvnw
 COPY src src
 RUN ./mvnw -q -B package -DskipTests
 
-# ---------- Runtime stage ----------
+#Runtime stage
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 RUN addgroup -S vqms && adduser -S vqms -G vqms

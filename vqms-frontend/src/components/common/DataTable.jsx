@@ -5,10 +5,11 @@ import EmptyState, { ErrorState } from './EmptyState';
 
 /**
  * Generic table.
- * columns: [{ key, header, render?(row), className?, headerClassName?, sortKey?, align?: 'right' }]
+ * columns: [{ key, header, render?(row), className?, headerClassName?, sortKey?, align?: 'right' | 'center' }]
  * sort: { sortBy, direction, onSort(sortKey) } for server-side sorting.
  * selection: { isSelected(row), onToggle(row), allSelected, someSelected, onToggleAll() } adds a checkbox column.
  * roomy: taller rows with more padding (list pages with an actions column).
+ * upperHeaders: small uppercase column headers.
  */
 export default function DataTable({
   columns,
@@ -23,9 +24,10 @@ export default function DataTable({
   caption,
   dense = false,
   roomy = false,
+  upperHeaders = false,
   selection,
 }) {
-  const cellPadding = dense ? 'px-3 py-1.5' : roomy ? 'px-4 py-3' : 'px-4 py-2';
+  const cellPadding = dense ? 'px-3 py-1.5' : roomy ? 'px-3 py-3 first:pl-5 last:pr-5' : 'px-4 py-2';
   const colSpan = columns.length + (selection ? 1 : 0);
   const keyOf = (row, index) => (typeof rowKey === 'function' ? rowKey(row, index) : row[rowKey] ?? index);
 
@@ -60,10 +62,11 @@ export default function DataTable({
                   scope="col"
                   aria-sort={active ? (sort.direction === 'asc' ? 'ascending' : 'descending') : undefined}
                   className={cn(
-                    'whitespace-nowrap text-left text-xs font-medium text-slate-500',
-                    roomy ? 'h-11 font-semibold text-slate-700' : 'h-9',
-                    dense ? 'px-3' : 'px-4',
-                    column.align === 'right' && 'text-right',
+                    'whitespace-nowrap',
+                    column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left',
+                    roomy ? 'h-11 font-semibold' : 'h-9 font-medium',
+                    upperHeaders ? 'text-2xs uppercase tracking-[0.06em] text-slate-500' : roomy ? 'text-xs text-slate-700' : 'text-xs text-slate-500',
+                    dense ? 'px-3' : roomy ? 'px-3 first:pl-5 last:pr-5' : 'px-4',
                     column.headerClassName,
                   )}
                 >
@@ -73,6 +76,7 @@ export default function DataTable({
                       onClick={() => sort.onSort(column.sortKey)}
                       className={cn(
                         'group inline-flex items-center gap-1 rounded hover:text-slate-900',
+                        upperHeaders && 'uppercase tracking-[0.06em]',
                         active && 'text-slate-900',
                       )}
                     >
@@ -94,7 +98,7 @@ export default function DataTable({
                 {selection && <td className="pl-4 pr-1" />}
                 {columns.map((column) => (
                   <td key={column.key} className={cellPadding}>
-                    <Skeleton className={cn('h-3.5', index % 2 ? 'w-3/4 max-w-32' : 'w-full max-w-40', column.align === 'right' && 'ml-auto')} />
+                    <Skeleton className={cn('h-3.5', index % 2 ? 'w-3/4 max-w-32' : 'w-full max-w-40', column.align === 'right' && 'ml-auto', column.align === 'center' && 'mx-auto')} />
                   </td>
                 ))}
               </tr>
@@ -111,7 +115,7 @@ export default function DataTable({
           {!loading && !error && rows.length === 0 && (
             <tr>
               <td colSpan={colSpan}>
-                <EmptyState title={empty?.title || 'No records found'} description={empty?.description} action={empty?.action} icon={empty?.icon} />
+                <EmptyState title={empty?.title || 'No records found'} description={empty?.description} detail={empty?.detail} action={empty?.action} icon={empty?.icon} showIcon={Boolean(empty?.icon)} />
               </td>
             </tr>
           )}
@@ -143,7 +147,7 @@ export default function DataTable({
                 {columns.map((column) => (
                   <td
                     key={column.key}
-                    className={cn('align-middle text-slate-700', cellPadding, column.align === 'right' && 'num text-right', column.className)}
+                    className={cn('align-middle text-slate-700', cellPadding, column.align === 'right' && 'num text-right', column.align === 'center' && 'num text-center', column.className)}
                   >
                     {column.render ? column.render(row, index) : row[column.key] ?? <span className="text-slate-400">—</span>}
                   </td>
